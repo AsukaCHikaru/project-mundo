@@ -3,12 +3,10 @@ import { createRoot } from "react-dom/client";
 
 import "./index.css";
 
+import { Desktop } from "./components/Desktop";
+
 function App() {
-  return (
-    <h1 className="grid min-h-screen place-items-center text-4xl font-bold text-sky-600">
-      Hello, world!
-    </h1>
-  );
+  return <Desktop />;
 }
 
 const root = document.getElementById("root");

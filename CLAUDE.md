@@ -1,3 +1,10 @@
+# Code Style
+- No spread props. Pass every prop explicitly (e.g. `<Foo a={x.a} b={x.b} />`, never `<Foo {...x} />`). Explicit props read more clearly and make the data flow obvious.
+
+# Zustand
+- When a component reads more than one slice from a store, use a single selector wrapped in `useShallow` (`zustand/react/shallow`) that returns an object of the slices, rather than multiple separate `useStore((s) => s.x)` calls. The object selector returns a new reference every run, so `useShallow` is required to keep the default `Object.is` check from re-rendering on every store change.
+- A single-slice read does not need `useShallow` — `const x = useStore((s) => s.x)` is fine.
+
 # Bun
 Default to using Bun instead of Node.js.
 

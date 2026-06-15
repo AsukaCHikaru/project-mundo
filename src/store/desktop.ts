@@ -131,9 +131,3 @@ export const useDesktop = create<DesktopState>((set, get) => ({
       };
     }),
 }));
-
-/** Z-index for a window, derived from its position in `order`. */
-export const zIndexOf = (order: string[], id: string): number => {
-  const index = order.indexOf(id);
-  return index < 0 ? 0 : index + 1;
-};

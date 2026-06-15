@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+@theme {
+  --color-win-desktop: #008080;
+  --color-win-face: #c0c0c0;
+  --color-win-shadow: #808080;
+  --color-win-light: #dfdfdf;
+  --color-win-title: #000080;
+  --color-win-title-text: #ffffff;
+
+  --font-win:
+    "Pixelated MS Sans Serif", "MS Sans Serif", "Segoe UI", Tahoma, sans-serif;
+}
+
+@layer components {
+  /* Classic raised bevel: light top-left, dark bottom-right. */
+  .bevel-out {
+    box-shadow:
+      inset -1px -1px 0 #000,
+      inset 1px 1px 0 #dfdfdf,
+      inset -2px -2px 0 #808080,
+      inset 2px 2px 0 #fff;
+  }
+
+  /* Pressed / sunken bevel: dark top-left, light bottom-right. */
+  .bevel-in {
+    box-shadow:
+      inset 1px 1px 0 #000,
+      inset -1px -1px 0 #dfdfdf,
+      inset 2px 2px 0 #808080,
+      inset -2px -2px 0 #fff;
+  }
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-win);
+  /* Prevent text selection while clicking around the desktop. */
+  user-select: none;
+}

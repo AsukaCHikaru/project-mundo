@@ -1,0 +1,59 @@
+import { useShallow } from "zustand/react/shallow";
+import { useDesktop } from "../store/desktop";
+
+/**
+ * Bottom taskbar: Start button (not interactive yet) + one button per open
+ * window. Clicking a task focuses it, or restores it if minimized.
+ */
+export function Taskbar() {
+  const { order, windows, focusedId, focus, setStatus } = useDesktop(
+    useShallow((s) => ({
+      order: s.order,
+      windows: s.windows,
+      focusedId: s.focusedId,
+      focus: s.focus,
+      setStatus: s.setStatus,
+    })),
+  );
+
+  const handleTaskClick = (id: string) => {
+    const win = windows[id];
+    if (!win) return;
+    if (win.status === "minimized") setStatus(id, "normal");
+    focus(id);
+  };
+
+  return (
+    <div className="bevel-out flex h-9 items-center gap-1 bg-win-face px-1">
+      <button
+        type="button"
+        className="bevel-out flex h-7 items-center gap-1 bg-win-face px-2 text-sm font-bold text-black active:bevel-in"
+      >
+        <span className="text-base">🪟</span>
+        Start
+      </button>
+
+      <div className="mx-1 h-6 w-px bg-win-shadow" />
+
+      <div className="flex flex-1 items-center gap-1 overflow-hidden">
+        {order.map((id) => {
+          const win = windows[id];
+          if (!win) return null;
+          const active = focusedId === id && win.status !== "minimized";
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => handleTaskClick(id)}
+              className={`flex h-7 w-40 items-center truncate px-2 text-left text-sm text-black ${
+                active ? "bevel-in font-bold" : "bevel-out"
+              } bg-win-face`}
+            >
+              {win.title}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
