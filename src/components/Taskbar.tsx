@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useDesktop } from "../store/desktop";
+import { StartMenu } from "./StartMenu";
 
 /**
  * Bottom taskbar: Start button (not interactive yet) + one button per open
@@ -16,6 +18,8 @@ export function Taskbar() {
     })),
   );
 
+  const [startOpen, setStartOpen] = useState(false);
+
   const handleTaskClick = (id: string) => {
     const win = windows[id];
     if (!win) return;
@@ -24,10 +28,20 @@ export function Taskbar() {
   };
 
   return (
-    <div className="bevel-out flex h-9 items-center gap-1 bg-win-face px-1">
+    <div className="bevel-out relative flex h-9 items-center gap-1 bg-win-face px-1">
+      {/* Click-away layer: any click on the desktop closes the Start menu. */}
+      {startOpen && (
+        <div className="fixed inset-0" onClick={() => setStartOpen(false)} />
+      )}
+
+      {startOpen && <StartMenu />}
+
       <button
         type="button"
-        className="bevel-out flex h-7 items-center gap-1 bg-win-face px-2 text-sm font-bold text-black active:bevel-in"
+        onClick={() => setStartOpen((open) => !open)}
+        className={`flex h-7 items-center gap-1 bg-win-face px-2 text-sm font-bold text-black ${
+          startOpen ? "bevel-in" : "bevel-out active:bevel-in"
+        }`}
       >
         <span className="text-base">🪟</span>
         Start
