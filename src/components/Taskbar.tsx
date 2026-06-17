@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useDesktop } from "../store/desktop";
+import { Clock } from "./Clock";
 import { StartMenu } from "./StartMenu";
 
 /**
@@ -68,6 +69,10 @@ export function Taskbar() {
           );
         })}
       </div>
+
+      <div className="mx-1 h-6 w-px bg-win-shadow" />
+
+      <Clock />
     </div>
   );
 }
