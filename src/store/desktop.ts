@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 /** Identifier for a kind of program/document that can be opened in a window. */
-export type AppType = "explorer" | "notepad" | "recycle-bin";
+export type AppType = "explorer" | "notepad" | "recycle-bin" | "dialup";
 
 export type WindowStatus = "normal" | "minimized" | "maximized";
 
@@ -53,6 +53,9 @@ const DEFAULT_RECT: Rect = { x: 80, y: 80, w: 480, h: 320 };
 /** Cascades each new window slightly so they don't stack exactly. */
 const CASCADE_STEP = 24;
 
+/** App types that allow only one window — `open` focuses the existing one. */
+const SINGLETON_APP_TYPES = new Set<AppType>(["dialup"]);
+
 let idCounter = 0;
 const nextId = () => `win-${++idCounter}`;
 
@@ -62,6 +65,21 @@ export const useDesktop = create<DesktopState>((set, get) => ({
   focusedId: null,
 
   open: ({ appType, title, rect, payload }) => {
+    // Singleton apps: focus (and restore) the existing window instead of
+    // opening a second one.
+    if (SINGLETON_APP_TYPES.has(appType)) {
+      const existingId = get().order.find(
+        (winId) => get().windows[winId]?.appType === appType,
+      );
+      if (existingId) {
+        if (get().windows[existingId]?.status === "minimized") {
+          get().setStatus(existingId, "normal");
+        }
+        get().focus(existingId);
+        return existingId;
+      }
+    }
+
     const id = nextId();
     const offset = get().order.length * CASCADE_STEP;
     const windowState: WindowState = {

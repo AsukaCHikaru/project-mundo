@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { useConnection } from "../store/connection";
 import { useDesktop } from "../store/desktop";
 import { Clock } from "./Clock";
 import { StartMenu } from "./StartMenu";
@@ -9,16 +10,18 @@ import { StartMenu } from "./StartMenu";
  * window. Clicking a task focuses it, or restores it if minimized.
  */
 export function Taskbar() {
-  const { order, windows, focusedId, focus, setStatus } = useDesktop(
+  const { order, windows, focusedId, open, focus, setStatus } = useDesktop(
     useShallow((s) => ({
       order: s.order,
       windows: s.windows,
       focusedId: s.focusedId,
+      open: s.open,
       focus: s.focus,
       setStatus: s.setStatus,
     })),
   );
 
+  const connected = useConnection((s) => s.status === "connected");
   const [startOpen, setStartOpen] = useState(false);
 
   const handleTaskClick = (id: string) => {
@@ -27,6 +30,10 @@ export function Taskbar() {
     if (win.status === "minimized") setStatus(id, "normal");
     focus(id);
   };
+
+  // Double-clicking the tray globe shows the Dial-Up window. `open` is a
+  // singleton for "dialup", so this focuses the existing window if open.
+  const handleTrayOpen = () => open({ appType: "dialup", title: "Dial-Up" });
 
   return (
     <div className="bevel-out relative flex h-9 items-center gap-1 bg-win-face px-1">
@@ -69,6 +76,18 @@ export function Taskbar() {
           );
         })}
       </div>
+
+      {connected && (
+        <button
+          type="button"
+          onDoubleClick={handleTrayOpen}
+          className="px-1 text-base"
+          title="Connected to the internet"
+          aria-label="Connected to the internet"
+        >
+          🌐
+        </button>
+      )}
 
       <div className="mx-1 h-6 w-px bg-win-shadow" />
 

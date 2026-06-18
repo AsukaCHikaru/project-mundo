@@ -2,7 +2,7 @@
 A web puzzle game: a minimal Windows 95/98 desktop built in React 19 + Tailwind v4 + Bun, with state in Zustand. Think room-escape flash game, but inside an old Windows desktop — the eventual goal is to shut down the PC past a series of obstacles/puzzles. The game-logic / puzzle layer is intentionally deferred; current work is the desktop shell.
 
 ## Architecture
-- `src/store/desktop.ts` — Zustand store (`useDesktop`): `windows` (keyed by id), `order` (z-stack, last id = top), `focusedId`, and actions `open / close / focus / move / resize / setStatus`. `AppType` enumerates the kinds of programs/documents a window can hold (currently `"explorer" | "notepad" | "recycle-bin"`).
+- `src/store/desktop.ts` — Zustand store (`useDesktop`): `windows` (keyed by id), `order` (z-stack, last id = top), `focusedId`, and actions `open / close / focus / move / resize / setStatus`. `AppType` enumerates the kinds of programs/documents a window can hold. App types in `SINGLETON_APP_TYPES` (e.g. `dialup`) allow only one window — `open` focuses/restores the existing one instead of spawning a second.
 - `src/components/Desktop.tsx` — composition root: desktop background + icons + `<WindowLayer>` + `<Taskbar>`. Reads store slices here and passes them down as props.
 - `src/components/WindowLayer.tsx` — owns window **stacking**. Renders windows in `order` (back→front); DOM paint order alone decides what's on top, so there is no per-window z-index. Receives `windows` + `order` as props, does not touch the store.
 - `src/components/Window.tsx` — a single window shell (title bar + minimize/close, click-to-focus). Positions itself via its `rect`. Body is delegated to `<WindowContent>`. Dragging/resizing not wired yet (anime.js planned).
@@ -14,6 +14,11 @@ A web puzzle game: a minimal Windows 95/98 desktop built in React 19 + Tailwind 
 - `src/components/Dialog.tsx` — one win9x popup (title bar + close, icon + message, OK; Enter via autofocused OK, Esc to dismiss).
 - `src/components/DialogLayer.tsx` — mounted once in `Desktop`, renders all open dialogs centered/cascaded above everything. Wrapper is `pointer-events-none` (click-through); only the dialogs capture clicks (non-modal).
 - Example caller: Start → Shut Down checks `hasPermission(level, Permission.ADMIN)` and raises an error popup when the player lacks permission.
+
+## Internet / dial-up
+- `src/content/connection.ts` — game config + single source of truth for credentials: `CONNECTION` (random `555-XXXX` number generated per session, `admin` / `password` placeholders), `validateCredentials(...)`, and `CONNECTION_DOC` (the in-world "ISP Account" note built from the same `CONNECTION` object, so clue and check never drift). `CONNECTION_DOC_ID` is reused by the documents seed and the Start menu.
+- `src/store/connection.ts` — `useConnection`: `status` (`offline | connected`) + `connect`/`disconnect`. Taskbar shows a 🌐 tray icon (left of the clock) while connected; double-clicking it opens the Dial-Up window (restoring an existing one if open).
+- `src/components/DialUp.tsx` — `appType: "dialup"` window content. Connect form (phone / user / password) → timed "Dialing… / Verifying… / Logging on…" sequence → connected view (with Disconnect). Wrong credentials raise an error popup; on success it flips `useConnection` to connected. Launched via the **Dial-Up** desktop icon.
 
 ## Permission
 - `src/lib/permission.ts` — cross-cutting permission model (used by documents, and by programs later). `Permission` scale (`USER 0 / ADMIN 1 / SYSTEM 99`; SYSTEM is unreachable in-game, so SYSTEM-gated resources are effectively locked), `permissionFromName` (resolves a content-file name like `"system"` to a level), and `hasPermission(level, required)`.

@@ -50,7 +50,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
   const programs: MenuItem[] = [{ glyph: "🧮", label: "Calculator" }];
   const documents: MenuItem[] = START_MENU_DOCUMENTS.map((item) => ({
     glyph: item.glyph,
-    label: item.label,
+    label: docs[item.docId]?.title ?? "Untitled",
     onSelect: () => openDocument(item.docId),
   }));
 

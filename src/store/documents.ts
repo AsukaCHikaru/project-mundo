@@ -1,5 +1,9 @@
 import { create } from "zustand";
+import { CONNECTION_DOC } from "../content/connection";
 import { DEFAULT_DOCUMENTS, type GameDocument } from "../content/documents";
+
+/** All documents present at game start: CSV defaults plus generated ones. */
+const SEED_DOCUMENTS: GameDocument[] = [...DEFAULT_DOCUMENTS, CONNECTION_DOC];
 
 interface DocumentsState {
   /** All documents, keyed by id (seeded from defaults, in-memory only). */
@@ -16,7 +20,7 @@ let idCounter = 0;
 const nextId = () => `doc-${++idCounter}`;
 
 export const useDocuments = create<DocumentsState>((set) => ({
-  docs: Object.fromEntries(DEFAULT_DOCUMENTS.map((doc) => [doc.id, doc])),
+  docs: Object.fromEntries(SEED_DOCUMENTS.map((doc) => [doc.id, doc])),
 
   update: (id, patch) =>
     set((state) => {
