@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { hasPermission } from "../lib/permission";
 import { type NotepadPayload } from "../store/desktop";
@@ -11,7 +12,9 @@ interface NotepadProps {
 /**
  * Notepad content: edits the document named by `payload.docId`, writing changes
  * straight back to the documents store. Goes read-only when the player's
- * permission is below the document's `editPermission`.
+ * permission is below the document's `editPermission`. When editable, it
+ * auto-focuses with the caret at the end so the blinking cursor sits where
+ * you'd resume typing.
  */
 export function Notepad({ payload }: NotepadProps) {
   const docId = payload?.docId;
@@ -23,18 +26,29 @@ export function Notepad({ payload }: NotepadProps) {
   );
 
   const level = usePermission((s) => s.level);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const canEdit = !!doc && hasPermission(level, doc.editPermission);
+
+  useEffect(() => {
+    if (!canEdit) return;
+    const el = textareaRef.current;
+    if (!el) return;
+    el.focus();
+    const end = el.value.length;
+    el.setSelectionRange(end, end);
+  }, [canEdit]);
 
   if (!doc) return <span>Document not found.</span>;
 
-  const canEdit = hasPermission(level, doc.editPermission);
-
   return (
     <textarea
+      ref={textareaRef}
       value={doc.body}
       readOnly={!canEdit}
       spellCheck={false}
       onChange={(e) => update(doc.id, { body: e.target.value })}
-      className="h-full w-full resize-none bg-transparent font-win text-sm text-black outline-none"
+      className="h-full w-full resize-none bg-transparent font-win text-sm text-black caret-black outline-none"
     />
   );
 }
