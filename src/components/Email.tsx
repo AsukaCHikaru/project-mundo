@@ -3,6 +3,7 @@ import { type Mail, type MailFolder } from "../content/mail";
 import { useConnection } from "../store/connection";
 import { useDialogs } from "../store/dialogs";
 import { useMail } from "../store/mail";
+import { BevelButton } from "./BevelButton";
 
 interface FolderInfo {
   folder: MailFolder;
@@ -60,7 +61,7 @@ export function Email() {
       <div className="bevel-out flex gap-1 bg-win-face p-1">
         <ActionButton glyph="📝" label="Compose" />
         <ActionButton glyph="↩️" label="Reply" disabled={!selectedMail} />
-        <ActionButton glyph="📡" label="Send/Receive" onClick={sendReceive} />
+        <ActionButton glyph="📡" label="Send/Receive" onPress={sendReceive} />
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -131,21 +132,25 @@ export function Email() {
 interface ActionButtonProps {
   glyph: string;
   label: string;
-  onClick?: () => void;
+  onPress?: () => void;
   disabled?: boolean;
 }
 
-function ActionButton({ glyph, label, onClick, disabled = false }: ActionButtonProps) {
+function ActionButton({
+  glyph,
+  label,
+  onPress,
+  disabled = false,
+}: ActionButtonProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <BevelButton
+      onPress={onPress}
       disabled={disabled}
-      className="bevel-out flex items-center gap-1 bg-win-face px-3 py-1 active:bevel-in disabled:text-win-shadow"
+      className="flex items-center gap-1 px-3 py-1"
     >
       <span>{glyph}</span>
       <span>{label}</span>
-    </button>
+    </BevelButton>
   );
 }
 

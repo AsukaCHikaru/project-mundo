@@ -1,4 +1,9 @@
-import { type DialogKind, type DialogState, useDialogs } from "../store/dialogs";
+import {
+  type DialogKind,
+  type DialogState,
+  useDialogs,
+} from "../store/dialogs";
+import { BevelButton } from "./BevelButton";
 
 const ICON: Record<DialogKind, string> = {
   error: "❌",
@@ -33,14 +38,13 @@ export function Dialog({ dialog }: DialogProps) {
         }}
       >
         <span className="flex-1 truncate">{dialog.title}</span>
-        <button
-          type="button"
+        <BevelButton
           aria-label="Close"
-          onClick={dismiss}
-          className="bevel-out grid h-4 w-4 place-items-center bg-win-face text-[10px] leading-none font-bold text-black active:bevel-in"
+          onPress={dismiss}
+          className="grid h-4 w-4 place-items-center text-[10px] leading-none font-bold text-black"
         >
           ✕
-        </button>
+        </BevelButton>
       </div>
 
       {/* Body */}
@@ -51,14 +55,13 @@ export function Dialog({ dialog }: DialogProps) {
 
       {/* Buttons */}
       <div className="flex justify-center pb-3">
-        <button
-          type="button"
+        <BevelButton
           autoFocus
-          onClick={dismiss}
-          className="bevel-out min-w-20 bg-win-face px-4 py-1 text-sm text-black active:bevel-in"
+          onPress={dismiss}
+          className="min-w-20 px-4 py-1 text-sm text-black"
         >
           OK
-        </button>
+        </BevelButton>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { validateLogin, validatePhoneNumber } from "../content/connection";
 import { useConnection } from "../store/connection";
 import { useDialogs } from "../store/dialogs";
+import { BevelButton } from "./BevelButton";
 
 const STEP_MS = 900;
 
@@ -29,8 +30,16 @@ const DIAL_STEP = {
  */
 const DIAL_STEPS: DialStep[] = [
   { step: "number", message: "Dialing {number}...", order: DIAL_STEP.NUMBER },
-  { step: "login", message: "Verifying user name and password...", order: DIAL_STEP.LOGIN },
-  { step: "logon", message: "Logging on to the network...", order: DIAL_STEP.LOGON },
+  {
+    step: "login",
+    message: "Verifying user name and password...",
+    order: DIAL_STEP.LOGIN,
+  },
+  {
+    step: "logon",
+    message: "Logging on to the network...",
+    order: DIAL_STEP.LOGON,
+  },
 ];
 
 type DialUpState =
@@ -94,16 +103,15 @@ export function DialUp() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
         <p>Connected to the internet.</p>
-        <button
-          type="button"
-          onClick={() => {
+        <BevelButton
+          onPress={() => {
             disconnect();
             setState({ type: "form" });
           }}
-          className="bevel-out bg-win-face px-4 py-1 active:bevel-in"
+          className="px-4 py-1"
         >
           Disconnect
-        </button>
+        </BevelButton>
       </div>
     );
   }
@@ -115,13 +123,12 @@ export function DialUp() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
         <p>{message}</p>
-        <button
-          type="button"
-          onClick={() => setState({ type: "form" })}
-          className="bevel-out bg-win-face px-4 py-1 active:bevel-in"
+        <BevelButton
+          onPress={() => setState({ type: "form" })}
+          className="px-4 py-1"
         >
           Cancel
-        </button>
+        </BevelButton>
       </div>
     );
   }
@@ -147,12 +154,9 @@ export function DialUp() {
         onChange={setPassword}
       />
       <div className="mt-2 flex justify-end">
-        <button
-          type="submit"
-          className="bevel-out bg-win-face px-4 py-1 active:bevel-in"
-        >
+        <BevelButton type="submit" className="px-4 py-1">
           Connect
-        </button>
+        </BevelButton>
       </div>
     </form>
   );

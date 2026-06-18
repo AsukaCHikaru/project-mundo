@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useConnection } from "../store/connection";
 import { useDesktop } from "../store/desktop";
+import { BevelButton } from "./BevelButton";
 import { Clock } from "./Clock";
 import { StartMenu } from "./StartMenu";
 
@@ -44,16 +45,14 @@ export function Taskbar() {
 
       {startOpen && <StartMenu onClose={() => setStartOpen(false)} />}
 
-      <button
-        type="button"
-        onClick={() => setStartOpen((open) => !open)}
-        className={`flex h-7 items-center gap-1 bg-win-face px-2 text-sm font-bold text-black ${
-          startOpen ? "bevel-in" : "bevel-out active:bevel-in"
-        }`}
+      <BevelButton
+        held={startOpen}
+        onPress={() => setStartOpen((open) => !open)}
+        className="flex h-7 items-center gap-1 px-2 text-sm font-bold text-black"
       >
         <span className="text-base">🪟</span>
         Start
-      </button>
+      </BevelButton>
 
       <div className="mx-1 h-6 w-px bg-win-shadow" />
 
@@ -63,16 +62,16 @@ export function Taskbar() {
           if (!win) return null;
           const active = focusedId === id && win.status !== "minimized";
           return (
-            <button
+            <BevelButton
               key={id}
-              type="button"
-              onClick={() => handleTaskClick(id)}
+              held={active}
+              onPress={() => handleTaskClick(id)}
               className={`flex h-7 w-40 items-center truncate px-2 text-left text-sm text-black ${
-                active ? "bevel-in font-bold" : "bevel-out"
-              } bg-win-face`}
+                active ? "font-bold" : ""
+              }`}
             >
               {win.title}
-            </button>
+            </BevelButton>
           );
         })}
       </div>

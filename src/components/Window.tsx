@@ -1,5 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { useDesktop, type WindowState } from "../store/desktop";
+import { BevelButton } from "./BevelButton";
 import { WindowContent } from "./WindowContent";
 
 interface WindowProps {
@@ -38,31 +39,31 @@ export function Window({ window }: WindowProps) {
       <div
         className="flex items-center gap-1 px-1 py-0.5 text-sm font-bold"
         style={{
-          background: isFocused ? "var(--color-win-title)" : "var(--color-win-shadow)",
+          background: isFocused
+            ? "var(--color-win-title)"
+            : "var(--color-win-shadow)",
           color: "var(--color-win-title-text)",
         }}
       >
         <span className="flex-1 truncate">{window.title}</span>
 
-        <button
-          type="button"
+        <BevelButton
           aria-label="Minimize"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={() => setStatus(window.id, "minimized")}
-          className="bevel-out grid h-4 w-4 place-items-end bg-win-face pb-0.5 text-black active:bevel-in"
+          stopPointerDown
+          onPress={() => setStatus(window.id, "minimized")}
+          className="grid h-4 w-4 place-items-end pb-0.5 text-black"
         >
           <span className="block h-0.5 w-2 bg-black" />
-        </button>
+        </BevelButton>
 
-        <button
-          type="button"
+        <BevelButton
           aria-label="Close"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={() => close(window.id)}
-          className="bevel-out grid h-4 w-4 place-items-center bg-win-face text-[10px] leading-none font-bold text-black active:bevel-in"
+          stopPointerDown
+          onPress={() => close(window.id)}
+          className="grid h-4 w-4 place-items-center text-[10px] leading-none font-bold text-black"
         >
           ✕
-        </button>
+        </BevelButton>
       </div>
 
       {/* Content area */}
