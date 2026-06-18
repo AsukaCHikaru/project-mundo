@@ -1,0 +1,8 @@
+id,title,path,editPermission,body
+readme,Read Me,C:\My Documents\Read Me.txt,system,"Welcome to Mundo 95.
+
+Something is keeping this machine from shutting down. Poke around the
+desktop, open what you can, and find a way to power it off.
+
+Good luck."
+notes,My Notes,C:\My Documents\My Notes.txt,user,"Scratchpad. Type anything you like here."
