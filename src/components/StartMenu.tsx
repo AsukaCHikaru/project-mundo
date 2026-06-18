@@ -1,17 +1,44 @@
 import { useState } from "react";
+import { START_MENU_DOCUMENTS } from "../content/startMenu";
+import { useDesktop } from "../store/desktop";
+import { useDocuments } from "../store/documents";
 
 type Category = "programs" | "documents";
 
-const PROGRAMS = [{ glyph: "🧮", label: "Calculator" }];
-const DOCUMENTS = [{ glyph: "📄", label: "Read Me" }];
+interface MenuItem {
+  glyph: string;
+  label: string;
+  /** Action to run when the item is clicked; omit for not-yet-wired items. */
+  onSelect?: () => void;
+}
+
+interface StartMenuProps {
+  /** Called after an item is chosen so the taskbar can dismiss the menu. */
+  onClose: () => void;
+}
 
 /**
  * The Start menu panel: a win95-style vertical banner on the left and a column
- * of items on the right. Programs/Documents reveal a single-item flyout on
- * hover. Items are presentational only — nothing is wired to actions yet.
+ * of items on the right. Programs/Documents reveal a flyout on hover. Wired so
+ * far: Documents items open the named document in a Notepad window.
  */
-export function StartMenu() {
+export function StartMenu({ onClose }: StartMenuProps) {
+  const open = useDesktop((s) => s.open);
+  const docs = useDocuments((s) => s.docs);
   const [openCategory, setOpenCategory] = useState<Category | null>(null);
+
+  const openDocument = (docId: string) => {
+    const title = docs[docId]?.title ?? "Untitled";
+    open({ appType: "notepad", title: `${title} - Notepad`, payload: { docId } });
+    onClose();
+  };
+
+  const programs: MenuItem[] = [{ glyph: "🧮", label: "Calculator" }];
+  const documents: MenuItem[] = START_MENU_DOCUMENTS.map((item) => ({
+    glyph: item.glyph,
+    label: item.label,
+    onSelect: () => openDocument(item.docId),
+  }));
 
   return (
     <div className="bevel-out absolute bottom-full left-0 mb-0.5 flex bg-win-face">
@@ -25,14 +52,14 @@ export function StartMenu() {
         <CategoryItem
           glyph="📁"
           label="Programs"
-          items={PROGRAMS}
+          items={programs}
           open={openCategory === "programs"}
           onHover={() => setOpenCategory("programs")}
         />
         <CategoryItem
           glyph="🗂️"
           label="Documents"
-          items={DOCUMENTS}
+          items={documents}
           open={openCategory === "documents"}
           onHover={() => setOpenCategory("documents")}
         />
@@ -54,14 +81,23 @@ interface MenuRowProps {
   label: string;
   hasFlyout?: boolean;
   onHover: () => void;
+  onClick?: () => void;
 }
 
 /** A single hoverable row inside the menu. */
-function MenuRow({ glyph, label, hasFlyout = false, onHover }: MenuRowProps) {
+function MenuRow({
+  glyph,
+  label,
+  hasFlyout = false,
+  onHover,
+  onClick,
+}: MenuRowProps) {
   return (
     <div
+      role="menuitem"
       onMouseEnter={onHover}
-      className="flex items-center gap-2 px-2 py-1 text-sm text-black hover:bg-win-title hover:text-win-title-text"
+      onClick={onClick}
+      className="flex cursor-pointer items-center gap-2 px-2 py-1 text-sm text-black hover:bg-win-title hover:text-win-title-text"
     >
       <span className="w-5 text-center text-base">{glyph}</span>
       <span className="flex-1">{label}</span>
@@ -73,12 +109,12 @@ function MenuRow({ glyph, label, hasFlyout = false, onHover }: MenuRowProps) {
 interface CategoryItemProps {
   glyph: string;
   label: string;
-  items: { glyph: string; label: string }[];
+  items: MenuItem[];
   open: boolean;
   onHover: () => void;
 }
 
-/** A top-level row whose single child appears in a flyout panel on hover. */
+/** A top-level row whose child items appear in a flyout panel on hover. */
 function CategoryItem({
   glyph,
   label,
@@ -97,6 +133,7 @@ function CategoryItem({
               glyph={item.glyph}
               label={item.label}
               onHover={() => {}}
+              onClick={item.onSelect}
             />
           ))}
         </div>

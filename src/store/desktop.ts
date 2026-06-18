@@ -5,6 +5,11 @@ export type AppType = "explorer" | "notepad" | "recycle-bin";
 
 export type WindowStatus = "normal" | "minimized" | "maximized";
 
+/** Payload for `appType: "notepad"` windows — which document it displays. */
+export interface NotepadPayload {
+  docId: string;
+}
+
 export interface Rect {
   x: number;
   y: number;

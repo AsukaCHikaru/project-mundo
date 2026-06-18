@@ -1,5 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { useDesktop, type WindowState } from "../store/desktop";
+import { WindowContent } from "./WindowContent";
 
 interface WindowProps {
   window: WindowState;
@@ -66,7 +67,7 @@ export function Window({ window }: WindowProps) {
 
       {/* Content area */}
       <div className="bevel-in m-0.5 flex-1 overflow-auto bg-white p-2 text-sm text-black">
-        {window.appType} window — id {window.id}
+        <WindowContent appType={window.appType} payload={window.payload} />
       </div>
     </div>
   );

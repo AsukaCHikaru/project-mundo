@@ -35,7 +35,7 @@ export function Taskbar() {
         <div className="fixed inset-0" onClick={() => setStartOpen(false)} />
       )}
 
-      {startOpen && <StartMenu />}
+      {startOpen && <StartMenu onClose={() => setStartOpen(false)} />}
 
       <button
         type="button"
