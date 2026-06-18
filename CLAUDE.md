@@ -1,5 +1,37 @@
+# Project Overview
+A web puzzle game: a minimal Windows 95/98 desktop built in React 19 + Tailwind v4 + Bun, with state in Zustand. Think room-escape flash game, but inside an old Windows desktop — the eventual goal is to shut down the PC past a series of obstacles/puzzles. The game-logic / puzzle layer is intentionally deferred; current work is the desktop shell.
+
+## Architecture
+- `src/store/desktop.ts` — Zustand store (`useDesktop`): `windows` (keyed by id), `order` (z-stack, last id = top), `focusedId`, and actions `open / close / focus / move / resize / setStatus`. `AppType` enumerates the kinds of programs/documents a window can hold (currently `"explorer" | "notepad" | "recycle-bin"`).
+- `src/components/Desktop.tsx` — composition root: desktop background + icons + `<WindowLayer>` + `<Taskbar>`. Reads store slices here and passes them down as props.
+- `src/components/WindowLayer.tsx` — owns window **stacking**. Renders windows in `order` (back→front); DOM paint order alone decides what's on top, so there is no per-window z-index. Receives `windows` + `order` as props, does not touch the store.
+- `src/components/Window.tsx` — a single window shell (title bar + minimize/close, click-to-focus). Positions itself via its `rect`. Body is delegated to `<WindowContent>`. Dragging/resizing not wired yet (anime.js planned).
+- `src/components/WindowContent.tsx` — renders a window's body by switching on `appType` (e.g. `notepad` → `<Notepad>`); unimplemented apps fall through to a placeholder. Casts the untyped `payload` to the app's payload type here.
+- `src/components/Notepad.tsx` — edits the document named by its `NotepadPayload` (`{ docId }`), writing changes back to the documents store via a `<textarea>`. Goes read-only when `doc.editPermission > PLAYER_PERMISSION`.
+
+## Permission
+- `src/lib/permission.ts` — cross-cutting permission model (used by documents, and by programs later). `Permission` scale (`USER 0 / ADMIN 1 / SYSTEM 99`; SYSTEM is unreachable in-game, so SYSTEM-gated resources are effectively locked), `permissionFromName` (resolves a content-file name like `"system"` to a level), and `hasPermission(level, required)`.
+- `src/store/permission.ts` — `usePermission` store: the player's current `level` (starts at `USER`) + `grant(level)` to raise it during play. UI gates on this (e.g. Notepad read-only).
+
+## Documents
+- `src/content/documents.csv` — the editable source of truth for default documents. Columns: `id,title,path,editPermission,body` (parsed by header name, so order doesn't matter). `editPermission` is a permission **name** (`user`/`admin`/`system`); multi-line bodies use quoted CSV fields. Edit this freely (incl. in a spreadsheet) — it's hand-authored game content.
+- `src/content/csv.ts` — `parseCsv`, a small RFC-4180 parser (quoted commas/newlines, `""` escapes).
+- `src/content/documents.ts` — `GameDocument` type and `DEFAULT_DOCUMENTS` (CSV parsed; permission names resolved via `permissionFromName`). Imports the CSV as text via `with { type: "text" }`; `src/csv.d.ts` types that import.
+- `src/store/documents.ts` — Zustand store (`useDocuments`): `docs` keyed by id (seeded from defaults, **in-memory only — edits reset on reload**), actions `update / create / remove`. Notepad windows reference docs by id rather than carrying text. Permission is enforced at the UI layer (Notepad), not in `update`.
+- `src/components/Taskbar.tsx` — bottom bar: Start button (toggles `<StartMenu>` via local state, closed by a click-away overlay) + one button per open window + `<Clock>` at the right edge.
+- `src/components/Clock.tsx` — sunken (`bevel-in`) taskbar clock showing the current time (`h:mm AM/PM`), ticking on a 1s interval.
+- `src/components/StartMenu.tsx` — the Start menu panel: vertical banner + Programs/Documents hover-flyouts + Shut Down. Takes `onClose` (taskbar dismisses the menu after a pick). Wired: Documents open the named document in a Notepad window; which docs appear is configured in `src/content/startMenu.ts` (`START_MENU_DOCUMENTS`, by doc id). Calculator + Shut Down still inert.
+- `src/components/DesktopIcon.tsx` — double-clickable desktop shortcut that opens a window.
+- `src/index.css` — win95 theme tokens (`--color-win-*`), `font-win`, and `.bevel-out` / `.bevel-in` utility classes for the raised/sunken 3D borders.
+
+## Workflow
+- Verify with `bunx tsc --noEmit` (ignore the pre-existing `baseUrl deprecated` tsconfig warning).
+- Leave changes staged, not committed.
+- Don't run `git add` after each edit. Make all the edits, then stage once at the end (or just leave it to me) — no incremental staging mid-task.
+
 # Code Style
 - No spread props. Pass every prop explicitly (e.g. `<Foo a={x.a} b={x.b} />`, never `<Foo {...x} />`). Explicit props read more clearly and make the data flow obvious.
+- No real-world trademarks in user-facing text or assets. Evoke the win95/98 *look* (bevels, teal desktop, title bars) but use generic, original branding — e.g. "Mundo 95", never "Windows 95", the logo, etc. Avoiding trademark/legal risk.
 
 # Zustand
 - When a component reads more than one slice from a store, use a single selector wrapped in `useShallow` (`zustand/react/shallow`) that returns an object of the slices, rather than multiple separate `useStore((s) => s.x)` calls. The object selector returns a new reference every run, so `useShallow` is required to keep the default `Object.is` check from re-rendering on every store change.
