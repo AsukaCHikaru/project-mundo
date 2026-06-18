@@ -1,0 +1,179 @@
+import { useShallow } from "zustand/react/shallow";
+import { type Mail, type MailFolder } from "../content/mail";
+import { useConnection } from "../store/connection";
+import { useDialogs } from "../store/dialogs";
+import { useMail } from "../store/mail";
+
+interface FolderInfo {
+  folder: MailFolder;
+  glyph: string;
+  label: string;
+}
+
+const FOLDERS: FolderInfo[] = [
+  { folder: "inbox", glyph: "📥", label: "Inbox" },
+  { folder: "outbox", glyph: "📤", label: "Outbox" },
+  { folder: "drafts", glyph: "📝", label: "Drafts" },
+];
+
+/**
+ * Email client (Outlook-style): an action bar across the top, a folder list on
+ * the left, and the selected folder's mail list above a reading pane on the
+ * right. Send/Receive is the only network-aware action — offline raises an
+ * error popup; connected downloads pending mail into the Inbox.
+ */
+export function Email() {
+  const networkConnection = useConnection((s) => s.status);
+  const error = useDialogs((s) => s.error);
+  const {
+    mails,
+    selectedFolder,
+    selectedMailId,
+    selectFolder,
+    selectMail,
+    receive,
+  } = useMail(
+    useShallow((s) => ({
+      mails: s.mails,
+      selectedFolder: s.selectedFolder,
+      selectedMailId: s.selectedMailId,
+      selectFolder: s.selectFolder,
+      selectMail: s.selectMail,
+      receive: s.receive,
+    })),
+  );
+
+  const folderMails = mails.filter((mail) => mail.folder === selectedFolder);
+  const selectedMail = folderMails.find((mail) => mail.id === selectedMailId);
+
+  const sendReceive = () => {
+    if (networkConnection !== "connected") {
+      error("Send/Receive failed. You are not connected to the internet.");
+      return;
+    }
+    receive();
+  };
+
+  return (
+    <div className="flex h-full flex-col text-sm text-black">
+      {/* Action bar */}
+      <div className="bevel-out flex gap-1 bg-win-face p-1">
+        <ActionButton glyph="📝" label="Compose" />
+        <ActionButton glyph="↩️" label="Reply" disabled={!selectedMail} />
+        <ActionButton glyph="📡" label="Send/Receive" onClick={sendReceive} />
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Folder list */}
+        <div className="bevel-in m-1 w-32 overflow-y-auto bg-white">
+          {FOLDERS.map((info) => {
+            const unread = mails.filter(
+              (mail) => mail.folder === info.folder && !mail.read,
+            ).length;
+            const active = info.folder === selectedFolder;
+            return (
+              <button
+                key={info.folder}
+                type="button"
+                onClick={() => selectFolder(info.folder)}
+                className={`flex w-full items-center gap-2 px-2 py-1 text-left ${
+                  active ? "bg-win-title text-win-title-text" : ""
+                }`}
+              >
+                <span>{info.glyph}</span>
+                <span className={`flex-1 ${unread > 0 ? "font-bold" : ""}`}>
+                  {info.label}
+                </span>
+                {unread > 0 && <span className="text-xs">({unread})</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Mail list + reading pane */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="bevel-in mt-1 mr-1 h-1/2 overflow-y-auto bg-white">
+            {folderMails.length === 0 ? (
+              <p className="p-2 text-win-shadow">No items in this folder.</p>
+            ) : (
+              folderMails.map((mail) => (
+                <MailRow
+                  key={mail.id}
+                  mail={mail}
+                  active={mail.id === selectedMailId}
+                  onClick={() => selectMail(mail.id)}
+                />
+              ))
+            )}
+          </div>
+
+          <div className="bevel-in m-1 flex-1 overflow-y-auto bg-white p-2">
+            {selectedMail ? (
+              <article className="flex h-full flex-col">
+                <header className="mb-2 border-b border-win-shadow pb-1">
+                  <p className="font-bold">{selectedMail.subject}</p>
+                  <p className="text-xs">From: {selectedMail.from}</p>
+                  <p className="text-xs">To: {selectedMail.to}</p>
+                  <p className="text-xs">{selectedMail.date}</p>
+                </header>
+                <p className="whitespace-pre-wrap">{selectedMail.body}</p>
+              </article>
+            ) : (
+              <p className="text-win-shadow">Select a message to read it.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ActionButtonProps {
+  glyph: string;
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}
+
+function ActionButton({ glyph, label, onClick, disabled = false }: ActionButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="bevel-out flex items-center gap-1 bg-win-face px-3 py-1 active:bevel-in disabled:text-win-shadow"
+    >
+      <span>{glyph}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
+interface MailRowProps {
+  mail: Mail;
+  active: boolean;
+  onClick: () => void;
+}
+
+function MailRow({ mail, active, onClick }: MailRowProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-start gap-2 px-2 py-1 text-left ${
+        active ? "bg-win-title text-win-title-text" : ""
+      }`}
+    >
+      {/* Unread indicator — a dot for unread, blank (but reserved) once read. */}
+      <span className="w-3 shrink-0 text-center leading-5">
+        {mail.read ? "" : "●"}
+      </span>
+      <span className="flex flex-col overflow-hidden">
+        <span className={`truncate ${mail.read ? "" : "font-bold"}`}>
+          {mail.subject}
+        </span>
+        <span className="truncate text-xs">{mail.from}</span>
+      </span>
+    </button>
+  );
+}

@@ -1,5 +1,6 @@
 import { type AppType, type NotepadPayload } from "../store/desktop";
 import { DialUp } from "./DialUp";
+import { Email } from "./Email";
 import { Notepad } from "./Notepad";
 
 interface WindowContentProps {
@@ -14,6 +15,8 @@ export function WindowContent({ appType, payload }: WindowContentProps) {
       return <Notepad payload={payload as NotepadPayload | undefined} />;
     case "dialup":
       return <DialUp />;
+    case "email":
+      return <Email />;
     default:
       return <span>{appType} — not implemented yet</span>;
   }

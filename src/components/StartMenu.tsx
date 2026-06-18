@@ -47,7 +47,19 @@ export function StartMenu({ onClose }: StartMenuProps) {
     // TODO: actual shutdown flow once the puzzle layer is in place.
   };
 
-  const programs: MenuItem[] = [{ glyph: "🧮", label: "Calculator" }];
+  const openProgram = (appType: "email", title: string) => {
+    open({ appType, title });
+    onClose();
+  };
+
+  const programs: MenuItem[] = [
+    {
+      glyph: "✉️",
+      label: "Email",
+      onSelect: () => openProgram("email", "Email"),
+    },
+    { glyph: "🧮", label: "Calculator" },
+  ];
   const documents: MenuItem[] = START_MENU_DOCUMENTS.map((item) => ({
     glyph: item.glyph,
     label: docs[item.docId]?.title ?? "Untitled",

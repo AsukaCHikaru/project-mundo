@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 /** Identifier for a kind of program/document that can be opened in a window. */
-export type AppType = "explorer" | "notepad" | "recycle-bin" | "dialup";
+export type AppType = "explorer" | "notepad" | "recycle-bin" | "dialup" | "email";
 
 export type WindowStatus = "normal" | "minimized" | "maximized";
 
@@ -50,11 +50,16 @@ interface DesktopState {
 
 const DEFAULT_RECT: Rect = { x: 80, y: 80, w: 480, h: 320 };
 
+/** Per-app default size, used when `open` isn't given an explicit `rect`. */
+const APP_DEFAULT_SIZE: Partial<Record<AppType, Pick<Rect, "w" | "h">>> = {
+  email: { w: 680, h: 460 },
+};
+
 /** Cascades each new window slightly so they don't stack exactly. */
 const CASCADE_STEP = 24;
 
 /** App types that allow only one window — `open` focuses the existing one. */
-const SINGLETON_APP_TYPES = new Set<AppType>(["dialup"]);
+const SINGLETON_APP_TYPES = new Set<AppType>(["dialup", "email"]);
 
 let idCounter = 0;
 const nextId = () => `win-${++idCounter}`;
@@ -82,6 +87,7 @@ export const useDesktop = create<DesktopState>((set, get) => ({
 
     const id = nextId();
     const offset = get().order.length * CASCADE_STEP;
+    const defaultSize = APP_DEFAULT_SIZE[appType];
     const windowState: WindowState = {
       id,
       appType,
@@ -91,8 +97,8 @@ export const useDesktop = create<DesktopState>((set, get) => ({
       rect: {
         x: (rect?.x ?? DEFAULT_RECT.x) + offset,
         y: (rect?.y ?? DEFAULT_RECT.y) + offset,
-        w: rect?.w ?? DEFAULT_RECT.w,
-        h: rect?.h ?? DEFAULT_RECT.h,
+        w: rect?.w ?? defaultSize?.w ?? DEFAULT_RECT.w,
+        h: rect?.h ?? defaultSize?.h ?? DEFAULT_RECT.h,
       },
     };
 
