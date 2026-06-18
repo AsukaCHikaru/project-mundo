@@ -1,6 +1,7 @@
 import { useShallow } from "zustand/react/shallow";
 import { useDesktop, type AppType } from "../store/desktop";
 import { DesktopIcon } from "./DesktopIcon";
+import { DialogLayer } from "./DialogLayer";
 import { Taskbar } from "./Taskbar";
 import { WindowLayer } from "./WindowLayer";
 
@@ -35,6 +36,8 @@ export function Desktop() {
       </div>
 
       <Taskbar />
+
+      <DialogLayer />
     </div>
   );
 }

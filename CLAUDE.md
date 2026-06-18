@@ -9,6 +9,12 @@ A web puzzle game: a minimal Windows 95/98 desktop built in React 19 + Tailwind 
 - `src/components/WindowContent.tsx` — renders a window's body by switching on `appType` (e.g. `notepad` → `<Notepad>`); unimplemented apps fall through to a placeholder. Casts the untyped `payload` to the app's payload type here.
 - `src/components/Notepad.tsx` — edits the document named by its `NotepadPayload` (`{ docId }`), writing changes back to the documents store via a `<textarea>`. Goes read-only when `doc.editPermission > PLAYER_PERMISSION`.
 
+## Dialogs (popups)
+- `src/store/dialogs.ts` — `useDialogs` store: a list of open dialogs + `open({ kind, title?, message })`, the `error(message, title?)` convenience, and `close(id)`. Call `error(...)` from anywhere to raise a popup — no prop-drilling. `kind` is `error | warning | info` (drives icon + default title).
+- `src/components/Dialog.tsx` — one win9x popup (title bar + close, icon + message, OK; Enter via autofocused OK, Esc to dismiss).
+- `src/components/DialogLayer.tsx` — mounted once in `Desktop`, renders all open dialogs centered/cascaded above everything. Wrapper is `pointer-events-none` (click-through); only the dialogs capture clicks (non-modal).
+- Example caller: Start → Shut Down checks `hasPermission(level, Permission.ADMIN)` and raises an error popup when the player lacks permission.
+
 ## Permission
 - `src/lib/permission.ts` — cross-cutting permission model (used by documents, and by programs later). `Permission` scale (`USER 0 / ADMIN 1 / SYSTEM 99`; SYSTEM is unreachable in-game, so SYSTEM-gated resources are effectively locked), `permissionFromName` (resolves a content-file name like `"system"` to a level), and `hasPermission(level, required)`.
 - `src/store/permission.ts` — `usePermission` store: the player's current `level` (starts at `USER`) + `grant(level)` to raise it during play. UI gates on this (e.g. Notepad read-only).

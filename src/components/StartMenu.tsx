@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { START_MENU_DOCUMENTS } from "../content/startMenu";
+import { hasPermission, Permission } from "../lib/permission";
 import { useDesktop } from "../store/desktop";
+import { useDialogs } from "../store/dialogs";
 import { useDocuments } from "../store/documents";
+import { usePermission } from "../store/permission";
 
 type Category = "programs" | "documents";
 
@@ -25,12 +28,23 @@ interface StartMenuProps {
 export function StartMenu({ onClose }: StartMenuProps) {
   const open = useDesktop((s) => s.open);
   const docs = useDocuments((s) => s.docs);
+  const level = usePermission((s) => s.level);
+  const error = useDialogs((s) => s.error);
   const [openCategory, setOpenCategory] = useState<Category | null>(null);
 
   const openDocument = (docId: string) => {
     const title = docs[docId]?.title ?? "Untitled";
     open({ appType: "notepad", title: `${title} - Notepad`, payload: { docId } });
     onClose();
+  };
+
+  const shutDown = () => {
+    onClose();
+    if (!hasPermission(level, Permission.ADMIN)) {
+      error("Access denied. You don't have permission to shut down this computer.");
+      return;
+    }
+    // TODO: actual shutdown flow once the puzzle layer is in place.
   };
 
   const programs: MenuItem[] = [{ glyph: "🧮", label: "Calculator" }];
@@ -70,6 +84,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
           glyph="⏻"
           label="Shut Down..."
           onHover={() => setOpenCategory(null)}
+          onClick={shutDown}
         />
       </div>
     </div>
