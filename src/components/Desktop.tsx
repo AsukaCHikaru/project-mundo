@@ -1,6 +1,8 @@
 import { useShallow } from "zustand/react/shallow";
+import { IS_DEV } from "../lib/env";
 import { useDesktop, type AppType } from "../store/desktop";
 import { DesktopIcon } from "./DesktopIcon";
+import { DevToolbar } from "./DevToolbar";
 import { DialogLayer } from "./DialogLayer";
 import { Taskbar } from "./Taskbar";
 import { WindowLayer } from "./WindowLayer";
@@ -20,26 +22,32 @@ export function Desktop() {
   );
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-win-desktop font-win">
-      {/* Work area: icons + windows. */}
-      <div className="relative flex-1 overflow-hidden">
-        <div className="flex flex-col flex-wrap content-start gap-2 p-2">
-          {SHORTCUTS.map((shortcut) => (
-            <DesktopIcon
-              key={shortcut.appType}
-              appType={shortcut.appType}
-              label={shortcut.label}
-              glyph={shortcut.glyph}
-            />
-          ))}
+    <div className="flex min-h-screen w-screen flex-col items-center justify-center overflow-auto bg-black">
+      {/* The desktop itself: a fixed 800x600 screen. */}
+      <div className="relative flex h-[600px] w-[800px] flex-col overflow-hidden bg-win-desktop font-win">
+        {/* Work area: icons + windows. */}
+        <div className="relative flex-1 overflow-hidden">
+          <div className="flex flex-col flex-wrap content-start gap-2 p-2">
+            {SHORTCUTS.map((shortcut) => (
+              <DesktopIcon
+                key={shortcut.appType}
+                appType={shortcut.appType}
+                label={shortcut.label}
+                glyph={shortcut.glyph}
+              />
+            ))}
+          </div>
+
+          <WindowLayer windows={windows} order={order} />
         </div>
 
-        <WindowLayer windows={windows} order={order} />
+        <Taskbar />
+
+        <DialogLayer />
       </div>
 
-      <Taskbar />
-
-      <DialogLayer />
+      {/* Dev-only tooling, outside the desktop area. */}
+      {IS_DEV && <DevToolbar />}
     </div>
   );
 }
