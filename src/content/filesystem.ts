@@ -22,6 +22,11 @@ interface FsBase {
   name: string;
   /** Full in-world path shown in the address bar, e.g. "C:\My Documents". */
   path: string;
+  /**
+   * If set, the node is inaccessible until this driver (by id) is installed:
+   * it shows translucent and opening it raises a "no driver" error.
+   */
+  requiresDriver?: string;
 }
 
 /** The virtual top level ("My Computer") whose children are the drives. */
@@ -114,13 +119,24 @@ const DRIVE_C: FsDrive = {
   ],
 };
 
+/** The floppy disk drive — locked until the floppy driver is installed. */
+const FLOPPY_DRIVE: FsDrive = {
+  kind: "drive",
+  id: "f",
+  name: "(F:)",
+  path: "F:\\",
+  requiredPermission: Permission.USER,
+  requiresDriver: "floppy-driver",
+  children: [],
+};
+
 export const FS_ROOT: FsRoot = {
   kind: "root",
   id: "root",
   name: "My Computer",
   path: "My Computer",
   requiredPermission: Permission.USER,
-  children: [DRIVE_C],
+  children: [DRIVE_C, FLOPPY_DRIVE],
 };
 
 /** The id Explorer starts at when its window has no seeded location. */

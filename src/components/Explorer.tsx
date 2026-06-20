@@ -74,7 +74,15 @@ export function Explorer({ payload }: ExplorerProps) {
     setSelectedId(null);
   };
 
+  /** A node locked because its required driver isn't installed yet. */
+  const driverMissing = (node: FsNode) =>
+    node.requiresDriver !== undefined && !installed[node.requiresDriver];
+
   const openNode = (node: FsNode) => {
+    if (driverMissing(node)) {
+      error(`${node.path} is not accessible. The required driver is not installed.`, "Device Not Ready");
+      return;
+    }
     switch (node.kind) {
       case "root":
       case "drive":
@@ -139,6 +147,7 @@ export function Explorer({ payload }: ExplorerProps) {
               glyph={GLYPH[node.kind]}
               label={node.name}
               selected={selectedId === node.id}
+              dimmed={driverMissing(node)}
               onSelect={() => setSelectedId(node.id)}
               onOpen={() => openNode(node)}
             />
@@ -153,18 +162,20 @@ interface ExplorerIconProps {
   glyph: string;
   label: string;
   selected: boolean;
+  /** Shown translucent, like a hidden/unavailable item. */
+  dimmed: boolean;
   onSelect: () => void;
   onOpen: () => void;
 }
 
 /** A single large-icon entry in the listing — select on click, open on double. */
-function ExplorerIcon({ glyph, label, selected, onSelect, onOpen }: ExplorerIconProps) {
+function ExplorerIcon({ glyph, label, selected, dimmed, onSelect, onOpen }: ExplorerIconProps) {
   return (
     <button
       type="button"
       onClick={onSelect}
       onDoubleClick={onOpen}
-      className="flex w-16 flex-col items-center gap-0.5 p-1 text-center text-xs text-black"
+      className={`flex w-16 flex-col items-center gap-0.5 p-1 text-center text-xs text-black ${dimmed ? "opacity-50" : ""}`}
     >
       <span
         className="grid h-9 w-9 place-items-center text-2xl"
