@@ -1,5 +1,5 @@
 import { useShallow } from "zustand/react/shallow";
-import { useConnection } from "../store/connection";
+import { useNetwork } from "../store/network";
 import { BevelButton } from "./BevelButton";
 
 /**
@@ -9,7 +9,7 @@ import { BevelButton } from "./BevelButton";
  * shortcuts here as the puzzle layer grows.
  */
 export function DevToolbar() {
-  const { status, connect, disconnect } = useConnection(
+  const { status, connect, disconnect } = useNetwork(
     useShallow((s) => ({
       status: s.status,
       connect: s.connect,

@@ -1,5 +1,5 @@
 import { type StartMenuDocument } from "../lib/startMenu";
-import { CONNECTION_DOC_ID } from "./connection";
+import { NETWORK_DOC_ID } from "./network";
 
 /**
  * Start menu configuration — game content, not UI. Which documents appear
@@ -9,5 +9,5 @@ import { CONNECTION_DOC_ID } from "./connection";
 export const START_MENU_DOCUMENTS: StartMenuDocument[] = [
   { glyph: "📄", docId: "readme" },
   { glyph: "📄", docId: "notes" },
-  { glyph: "📄", docId: CONNECTION_DOC_ID },
+  { glyph: "📄", docId: NETWORK_DOC_ID },
 ];

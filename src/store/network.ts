@@ -1,14 +1,14 @@
 import { create } from "zustand";
 
-export type ConnectionStatus = "offline" | "connected";
+export type NetworkStatus = "offline" | "connected";
 
-interface ConnectionState {
-  status: ConnectionStatus;
+interface NetworkState {
+  status: NetworkStatus;
   connect: () => void;
   disconnect: () => void;
 }
 
-export const useConnection = create<ConnectionState>((set) => ({
+export const useNetwork = create<NetworkState>((set) => ({
   status: "offline",
   connect: () => set({ status: "connected" }),
   disconnect: () => set({ status: "offline" }),
