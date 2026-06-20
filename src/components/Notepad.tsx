@@ -3,7 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { hasPermission } from "../lib/permission";
 import { type NotepadPayload } from "../store/desktop";
 import { useDocuments } from "../store/documents";
-import { usePermission } from "../store/permission";
+import { useSystem } from "../store/system";
 
 interface NotepadProps {
   payload: NotepadPayload | undefined;
@@ -25,7 +25,7 @@ export function Notepad({ payload }: NotepadProps) {
     })),
   );
 
-  const level = usePermission((s) => s.level);
+  const level = useSystem((s) => s.permission);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const canEdit = !!doc && hasPermission(level, doc.editPermission);

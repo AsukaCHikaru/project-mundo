@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useNetwork } from "../store/network";
+import { useSystem } from "../store/system";
 import { useDesktop } from "../store/desktop";
 import { BevelButton } from "./BevelButton";
 import { Clock } from "./Clock";
@@ -22,7 +22,7 @@ export function Taskbar() {
     })),
   );
 
-  const connected = useNetwork((s) => s.status === "connected");
+  const connected = useSystem((s) => s.network === "connected");
   const [startOpen, setStartOpen] = useState(false);
 
   const handleTaskClick = (id: string) => {

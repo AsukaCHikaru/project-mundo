@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { validateLogin, validatePhoneNumber } from "../content/network";
-import { useNetwork } from "../store/network";
+import { useSystem } from "../store/system";
 import { useDialogs } from "../store/dialogs";
 import { BevelButton } from "./BevelButton";
 
@@ -49,7 +49,7 @@ type DialUpState =
 
 /** Dial-Up Networking: connect form → dialing sequence → connected view. */
 export function DialUp() {
-  const { connect, disconnect } = useNetwork(
+  const { connect, disconnect } = useSystem(
     useShallow((s) => ({ connect: s.connect, disconnect: s.disconnect })),
   );
   const error = useDialogs((s) => s.error);
@@ -58,7 +58,7 @@ export function DialUp() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [state, setState] = useState<DialUpState>(() =>
-    useNetwork.getState().status === "connected"
+    useSystem.getState().network === "connected"
       ? { type: "connected" }
       : { type: "form" },
   );

@@ -1,5 +1,5 @@
 import { useShallow } from "zustand/react/shallow";
-import { useNetwork } from "../store/network";
+import { useSystem } from "../store/system";
 import { BevelButton } from "./BevelButton";
 
 /**
@@ -9,15 +9,15 @@ import { BevelButton } from "./BevelButton";
  * shortcuts here as the puzzle layer grows.
  */
 export function DevToolbar() {
-  const { status, connect, disconnect } = useNetwork(
+  const { network, connect, disconnect } = useSystem(
     useShallow((s) => ({
-      status: s.status,
+      network: s.network,
       connect: s.connect,
       disconnect: s.disconnect,
     })),
   );
 
-  const connected = status === "connected";
+  const connected = network === "connected";
 
   return (
     <div className="flex items-center gap-2 p-2 font-win text-xs text-white">

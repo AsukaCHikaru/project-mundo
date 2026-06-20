@@ -24,8 +24,8 @@ export interface ExplorerPayload {
 
 /** Payload for `appType: "installer"` windows — which program to install. */
 export interface InstallerPayload {
-  /** Driver id, resolved against the program registry's install configs. */
-  driverId: string;
+  /** Install flag id, resolved against the program registry's install configs. */
+  programId: string;
 }
 
 export interface Rect {

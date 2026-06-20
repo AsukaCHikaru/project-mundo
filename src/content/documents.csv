@@ -13,3 +13,9 @@ User name:       {{user}}
 Password:        {{password}}
 
 Required to connect to the internet. Do not share."
+floppy-readme,Readme,C:\Program Files\Floppy Driver\Readme.txt,user,"Floppy Disk Driver 1.0
+
+This driver lets Mundo 95 read and write 3.5"" floppy disks.
+
+If a disk is not recognised, check that it is inserted the right way up
+and that the write-protect tab is closed, then try again."

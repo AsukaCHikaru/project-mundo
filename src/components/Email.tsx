@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { type Mail, type MailFolder } from "../lib/mail";
-import { useNetwork } from "../store/network";
+import { useSystem } from "../store/system";
 import { useDialogs } from "../store/dialogs";
 import { useMail } from "../store/mail";
 import { BevelButton } from "./BevelButton";
@@ -25,7 +25,7 @@ const FOLDERS: FolderInfo[] = [
  * error popup; connected downloads pending mail into the Inbox.
  */
 export function Email() {
-  const networkStatus = useNetwork((s) => s.status);
+  const networkStatus = useSystem((s) => s.network);
   const error = useDialogs((s) => s.error);
   const {
     mails,
@@ -51,7 +51,7 @@ export function Email() {
   // window opens. If you connect *after* it's already open, no badge appears —
   // you'd only learn of waiting mail the next time you launch Email.
   const [connectedOnOpen] = useState(
-    () => useNetwork.getState().status === "connected",
+    () => useSystem.getState().network === "connected",
   );
 
   const folderMails = mails.filter((mail) => mail.folder === selectedFolder);

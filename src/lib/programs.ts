@@ -1,4 +1,5 @@
 import { type OpenOptions } from "../store/desktop";
+import { type ProgramId } from "../content/programs";
 
 /**
  * Program registry types — what each runnable program (an `.exe` node in the
@@ -9,42 +10,19 @@ import { type OpenOptions } from "../store/desktop";
 /** Opens a window — the slice of the desktop store a launcher is handed. */
 export type LaunchOpen = (options: OpenOptions) => string;
 
-/** Which shortcuts an install creates. Program config, never a wizard step. */
-export interface ShortcutConfig {
-  desktop?: boolean;
-  startMenuPrograms?: boolean;
-}
-
-/** A text file an installer ships — its body is added to the documents store. */
-export interface ShippedTxt {
-  kind: "txt";
-  /** File name as it appears in the installed folder, e.g. "Readme.txt". */
-  name: string;
-  body: string;
-}
-
-/** An exe an installer ships — runs the named program when launched. */
-export interface ShippedExe {
-  kind: "exe";
-  name: string;
-  /** Program id this exe launches (must exist in the registry). */
-  program: string;
-}
-
-export type ShippedFile = ShippedTxt | ShippedExe;
-
 /**
- * What an installable program declares. Install location is always
- * `C:\Program Files\<name>` — fixed, never a prop. The shipped `files` follow
- * from `shortcuts`: shortcuts → runnable exe(s); no shortcuts → only txt(s).
+ * What an installable program declares. Files are predefined filesystem nodes
+ * (never created at runtime); installing only flips the system's install flag
+ * and reveals the program's nodes — so the flag and the files can't drift. The
+ * installer is the single site that does both; the stores stay decoupled.
  */
 export interface InstallConfig {
-  /** Key registered in the system store on install. */
-  driverId: string;
-  /** Display name; also the installed folder name under C:\Program Files. */
+  /** The install flag set in the system store. */
+  programId: ProgramId;
+  /** Display name shown by the setup wizard / install location. */
   name: string;
-  shortcuts: ShortcutConfig;
-  files: ShippedFile[];
+  /** Filesystem node ids revealed (flipped to `normal`) on install. */
+  reveals: string[];
 }
 
 export interface ProgramEntry {

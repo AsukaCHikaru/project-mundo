@@ -1,52 +1,50 @@
 import { useState } from "react";
-import {
-  FS_ROOT_ID,
-  getContainer,
-  listChildren,
-  parentId,
-} from "../content/filesystem";
-import { type FsNode } from "../lib/filesystem";
+import { DRIVE_ID, FS_ROOT_ID, getContainer, parentId } from "../content/filesystem";
+import { FS_STATE, type FsNode, type FsState } from "../lib/filesystem";
 import { PROGRAMS } from "../content/programs";
-import { hasPermission } from "../lib/permission";
 import { type ExplorerPayload } from "../store/desktop";
 import { useDesktop } from "../store/desktop";
 import { useDialogs } from "../store/dialogs";
 import { useDocuments } from "../store/documents";
-import { usePermission } from "../store/permission";
-import { useSystem } from "../store/system";
+import { useFilesystem } from "../store/filesystem";
 import { BevelButton } from "./BevelButton";
 
 interface ExplorerProps {
   payload: ExplorerPayload | undefined;
 }
 
-/** Icon shown for each node kind in the listing. */
-const GLYPH: Record<FsNode["kind"], string> = {
-  root: "🖥️",
-  drive: "🗄️",
-  folder: "📁",
-  "file-txt": "📄",
-  "file-exe": "⚙️",
-};
+/** Icon shown for each node in the listing. */
+function glyphFor(node: FsNode): string {
+  switch (node.nodeClass) {
+    case "root":
+      return "🖥️";
+    case "drive":
+      return node.id === DRIVE_ID.FLOPPY ? "💾" : "🗄️";
+    case "folder":
+      return "📁";
+    case "file":
+      return node.fileKind === "exe" ? "⚙️" : "📄";
+  }
+}
 
 /**
  * Explorer window body: a win9x file manager that browses the static
  * filesystem tree (see `content/filesystem`). Navigation happens in place,
  * web-browser style — Back/Forward/Up plus a read-only address bar — with
- * history kept per-window in local state. Double-clicking a folder navigates
- * into it (after a permission check), a text file opens in Notepad, and a
- * program is a no-op for now.
+ * history kept per-window in local state. A node's live state (normal/hidden/
+ * forbidden) comes from the filesystem store: hidden nodes aren't listed,
+ * forbidden ones show dimmed and raise their error on open, and normal folders
+ * navigate / text files open in Notepad / programs launch via the registry.
  */
 export function Explorer({ payload }: ExplorerProps) {
   const open = useDesktop((s) => s.open);
   const docs = useDocuments((s) => s.docs);
-  const installed = useSystem((s) => s.installed);
-  const level = usePermission((s) => s.level);
+  const states = useFilesystem((s) => s.states);
   const error = useDialogs((s) => s.error);
 
   // Per-window navigation history: a stack of container ids + a cursor.
   const [history, setHistory] = useState<string[]>(() => [
-    payload?.nodeId && getContainer(payload.nodeId, installed)
+    payload?.nodeId && getContainer(payload.nodeId)
       ? payload.nodeId
       : FS_ROOT_ID,
   ]);
@@ -54,9 +52,14 @@ export function Explorer({ payload }: ExplorerProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const current =
-    getContainer(history[cursor] ?? FS_ROOT_ID, installed) ??
-    getContainer(FS_ROOT_ID, installed)!;
-  const children = listChildren(current, docs, installed);
+    getContainer(history[cursor] ?? FS_ROOT_ID) ?? getContainer(FS_ROOT_ID)!;
+
+  const stateOf = (node: FsNode): FsState =>
+    states[node.id] ?? { state: FS_STATE.NORMAL };
+  // Hidden nodes don't exist for the player; everything else is listed.
+  const children = current.children.filter(
+    (node) => stateOf(node).state !== FS_STATE.HIDDEN,
+  );
 
   const canBack = cursor > 0;
   const canForward = cursor < history.length - 1;
@@ -74,40 +77,32 @@ export function Explorer({ payload }: ExplorerProps) {
     setSelectedId(null);
   };
 
-  /** A node locked because its required driver isn't installed yet. */
-  const driverMissing = (node: FsNode) =>
-    node.requiresDriver !== undefined && !installed[node.requiresDriver];
-
   const openNode = (node: FsNode) => {
-    if (driverMissing(node)) {
-      error(`${node.path} is not accessible. The required driver is not installed.`, "Device Not Ready");
+    const nodeState = stateOf(node);
+    if (nodeState.state === FS_STATE.FORBIDDEN) {
+      error(nodeState.errorMessage);
       return;
     }
-    switch (node.kind) {
+    switch (node.nodeClass) {
       case "root":
       case "drive":
       case "folder":
-        if (!hasPermission(level, node.requiredPermission)) {
-          error(`${node.path} is not accessible. You do not have permission.`, "Access Denied");
-          return;
-        }
         navigate(node.id);
         break;
-      case "file-txt": {
-        const title = docs[node.docId]?.title ?? node.name;
-        open({
-          appType: "notepad",
-          title: `${title} - Notepad`,
-          payload: { docId: node.docId },
-        });
+      case "file":
+        if (node.fileKind === "txt") {
+          const title = docs[node.docId]?.title ?? node.name;
+          open({
+            appType: "notepad",
+            title: `${title} - Notepad`,
+            payload: { docId: node.docId },
+          });
+        } else {
+          const program = PROGRAMS[node.program];
+          if (program) program.launch(open);
+          else error(`Cannot run ${node.name}.`);
+        }
         break;
-      }
-      case "file-exe": {
-        const program = PROGRAMS[node.program];
-        if (program) program.launch(open);
-        else error(`Cannot run ${node.name}.`, "Cannot Run Program");
-        break;
-      }
     }
   };
 
@@ -144,10 +139,10 @@ export function Explorer({ payload }: ExplorerProps) {
           {children.map((node) => (
             <ExplorerIcon
               key={node.id}
-              glyph={GLYPH[node.kind]}
+              glyph={glyphFor(node)}
               label={node.name}
               selected={selectedId === node.id}
-              dimmed={driverMissing(node)}
+              dimmed={stateOf(node).state === FS_STATE.FORBIDDEN}
               onSelect={() => setSelectedId(node.id)}
               onOpen={() => openNode(node)}
             />

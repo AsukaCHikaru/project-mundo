@@ -1,78 +1,55 @@
 import { create } from "zustand";
-import { INSTALL_BY_DRIVER_ID } from "../content/programs";
-import { type ShortcutConfig } from "../lib/programs";
-import { Permission } from "../lib/permission";
-import { useDocuments } from "./documents";
+import { PROGRAM_ID, type ProgramId } from "../content/programs";
+import { Permission, type PermissionLevel } from "../lib/permission";
 
-/** A runnable program inside an installed folder (resolves via the registry). */
-export interface InstalledExe {
-  name: string;
-  /** Program id this exe launches. */
-  program: string;
-}
+export type NetworkStatus = "offline" | "connected";
 
-/** A program registered as installed on the machine. */
-export interface InstalledProgram {
-  driverId: string;
-  /** Display name; also the installed folder name under C:\Program Files. */
-  name: string;
-  /** Runnable exes the program shipped (empty for driver-like installs). */
-  exes: InstalledExe[];
-  shortcuts: ShortcutConfig;
-}
-
+/**
+ * The machine's status, in one place: the internet connection, the player's
+ * permission level, and which programs are installed. These are unrelated
+ * facets of "system state" that previously lived in separate stores; merging
+ * them keeps the cross-cutting bits together without coupling the modules that
+ * read them.
+ *
+ * Install is only a flag — the installed *files* are predefined filesystem
+ * nodes revealed by the installer (see `content/programs`), so this store and
+ * the filesystem never write each other yet can't fall out of sync.
+ */
 interface SystemState {
-  /** Installed programs keyed by driver id (in-memory only). */
-  installed: Record<string, InstalledProgram>;
+  /** Internet connection (dial-up). */
+  network: NetworkStatus;
+  /** The player's current permission level. Starts at USER, rises in-game. */
+  permission: PermissionLevel;
+  /** Install flags, keyed by program id. */
+  installed: Record<ProgramId, boolean>;
 
-  /**
-   * Register a program as installed. Idempotent — installing again is a no-op,
-   * so its bundled documents are never duplicated. On first install it:
-   *   1. records the driver here,
-   *   2. creates the program's bundled txt documents (under its Program Files
-   *      folder path) so the derived folder lists them and Notepad opens them,
-   *   3. records the program's shortcut config (a hook for shortcut UI).
-   */
-  install: (driverId: string) => void;
+  connect: () => void;
+  disconnect: () => void;
+  /** Raise the player's permission. No-op if already at or above `level`. */
+  grant: (level: PermissionLevel) => void;
+  /** Flag a program installed. Idempotent. */
+  install: (programId: ProgramId) => void;
 }
 
-export const useSystem = create<SystemState>((set, get) => ({
-  installed: {},
+const NONE_INSTALLED = Object.fromEntries(
+  Object.values(PROGRAM_ID).map((id) => [id, false]),
+) as Record<ProgramId, boolean>;
 
-  install: (driverId) => {
-    if (get().installed[driverId]) return; // already installed — no-op.
+export const useSystem = create<SystemState>((set) => ({
+  network: "offline",
+  permission: Permission.USER,
+  installed: { ...NONE_INSTALLED },
 
-    const config = INSTALL_BY_DRIVER_ID[driverId];
-    if (!config) return;
+  connect: () => set({ network: "connected" }),
+  disconnect: () => set({ network: "offline" }),
 
-    const folderPath = `C:\\Program Files\\${config.name}`;
+  grant: (level) =>
+    set((state) => (level > state.permission ? { permission: level } : state)),
 
-    // Bundled txt files become documents under the folder's path, so the
-    // path-based listing derives them and Notepad can open them by id.
-    for (const file of config.files) {
-      if (file.kind !== "txt") continue;
-      useDocuments.getState().create({
-        title: file.name.replace(/\.txt$/i, ""),
-        path: `${folderPath}\\${file.name}`,
-        body: file.body,
-        editPermission: Permission.USER,
-      });
-    }
-
-    const exes: InstalledExe[] = config.files
-      .filter((file) => file.kind === "exe")
-      .map((file) => ({ name: file.name, program: file.program }));
-
-    set((state) => ({
-      installed: {
-        ...state.installed,
-        [driverId]: {
-          driverId,
-          name: config.name,
-          exes,
-          shortcuts: config.shortcuts,
-        },
-      },
-    }));
-  },
+  install: (programId) =>
+    set((state) =>
+      state.installed[programId]
+        ? state
+        : { installed: { ...state.installed, [programId]: true } },
+    ),
 }));

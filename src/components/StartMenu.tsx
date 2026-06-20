@@ -4,7 +4,7 @@ import { hasPermission, Permission } from "../lib/permission";
 import { useDesktop } from "../store/desktop";
 import { useDialogs } from "../store/dialogs";
 import { useDocuments } from "../store/documents";
-import { usePermission } from "../store/permission";
+import { useSystem } from "../store/system";
 
 type Category = "programs" | "documents";
 
@@ -28,7 +28,7 @@ interface StartMenuProps {
 export function StartMenu({ onClose }: StartMenuProps) {
   const open = useDesktop((s) => s.open);
   const docs = useDocuments((s) => s.docs);
-  const level = usePermission((s) => s.level);
+  const level = useSystem((s) => s.permission);
   const error = useDialogs((s) => s.error);
   const [openCategory, setOpenCategory] = useState<Category | null>(null);
 

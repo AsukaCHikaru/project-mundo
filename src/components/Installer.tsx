@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { INSTALL_BY_DRIVER_ID } from "../content/programs";
+import { INSTALL_BY_PROGRAM_ID } from "../content/programs";
 import { type InstallerPayload } from "../store/desktop";
 import { useDesktop } from "../store/desktop";
+import { useFilesystem } from "../store/filesystem";
 import { useSystem } from "../store/system";
 import { BevelButton } from "./BevelButton";
 
@@ -25,16 +26,18 @@ interface InstallerProps {
 /**
  * A win9x setup wizard: Welcome → Install location → Installing → Complete.
  *
- * Registration (system install + bundled docs + Program Files folder) happens
- * exactly once, on reaching the Complete step — see the commit effect. Closing
- * on any earlier step, including mid-progress or visually at 100% before it
- * advances, registers nothing; there is no partial install to roll back.
+ * The commit happens exactly once, on reaching the Complete step (see the
+ * effect): it sets the system install flag and reveals the program's predefined
+ * filesystem nodes. This is the single site that touches both, keeping the flag
+ * and the files in sync without the stores coupling. Closing on any earlier
+ * step commits nothing; there is no partial install to roll back.
  */
 export function Installer({ windowId, payload }: InstallerProps) {
   const close = useDesktop((s) => s.close);
   const install = useSystem((s) => s.install);
+  const reveal = useFilesystem((s) => s.reveal);
 
-  const config = payload ? INSTALL_BY_DRIVER_ID[payload.driverId] : undefined;
+  const config = payload ? INSTALL_BY_PROGRAM_ID[payload.programId] : undefined;
 
   const [step, setStep] = useState<number>(STEP.WELCOME);
   const [progress, setProgress] = useState(0);
@@ -53,11 +56,13 @@ export function Installer({ windowId, payload }: InstallerProps) {
     if (step === STEP.INSTALLING && progress >= 100) setStep(STEP.COMPLETE);
   }, [step, progress]);
 
-  // The single commit point: register the install on reaching Complete.
-  // Idempotent, so a re-run would be harmless, but step never leaves COMPLETE.
+  // The single commit point: flag installed + reveal its nodes on reaching
+  // Complete. Both are idempotent, so a re-run is harmless; step stays COMPLETE.
   useEffect(() => {
-    if (step === STEP.COMPLETE && config) install(config.driverId);
-  }, [step, config, install]);
+    if (step !== STEP.COMPLETE || !config) return;
+    install(config.programId);
+    for (const nodeId of config.reveals) reveal(nodeId);
+  }, [step, config, install, reveal]);
 
   const closeWindow = () => close(windowId);
 

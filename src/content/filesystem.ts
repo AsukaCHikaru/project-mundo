@@ -1,5 +1,5 @@
-import { Permission } from "../lib/permission";
 import {
+  FS_STATE,
   type FsContainer,
   type FsDrive,
   type FsFileExe,
@@ -7,208 +7,185 @@ import {
   type FsFolder,
   type FsNode,
   type FsRoot,
+  type FsState,
 } from "../lib/filesystem";
-import { type GameDocument } from "../lib/documents";
-import { type InstalledProgram } from "../store/system";
 
 /**
- * In-world filesystem — the single source of truth for the drive/folder tree
- * the Explorer browses. Containers (root/drive/folder) are static and listed
- * here; `file-txt` entries are NOT stored statically but **derived** from the
- * documents store at render time (see `listChildren`), so a document placed in
- * a folder's path appears automatically and never drifts from its real title.
+ * In-world filesystem — the single source of truth for the predefined
+ * drive/folder/file tree the Explorer browses. Nodes are never added or
+ * removed at runtime; what changes is each node's *state* (see the filesystem
+ * store), so a locked drive or an installed program's folder simply flips from
+ * `forbidden`/`hidden` to `normal` once unlocked.
+ *
+ * Node ids are predefined here as const maps and referenced everywhere else
+ * (program reveals, window payloads) so the ids never drift.
  */
 
-/** The default in-world tree. C: is the only drive. */
+/** Drive ids (root-level volumes). */
+export const DRIVE_ID = {
+  C: "c",
+  FLOPPY: "floppy",
+} as const;
+
+/** Folder ids. */
+export const FOLDER_ID = {
+  MY_DOCUMENTS: "my-documents",
+  PROGRAM_FILES: "program-files",
+  MY_DOWNLOADS: "my-downloads",
+  SYSTEM32: "system32",
+  FLOPPY_DRIVER: "floppy-driver-folder",
+} as const;
+
+/** File ids (txt documents and exe entries). */
+export const FILE_ID = {
+  READ_ME: "read-me",
+  MY_NOTES: "my-notes",
+  NETWORK_NOTE: "network-note",
+  FLOPPY_SETUP: "floppy-setup",
+  FLOPPY_README: "floppy-readme",
+} as const;
+
+/** Small constructors keep the tree below readable. */
+const txt = (
+  id: string,
+  name: string,
+  path: string,
+  docId: string,
+  initialState: FsState = { state: FS_STATE.NORMAL },
+): FsFileTxt => ({ nodeClass: "file", fileKind: "txt", id, name, path, docId, initialState });
+
+const exe = (
+  id: string,
+  name: string,
+  path: string,
+  program: string,
+  initialState: FsState = { state: FS_STATE.NORMAL },
+): FsFileExe => ({ nodeClass: "file", fileKind: "exe", id, name, path, program, initialState });
+
+/** Program Files > Floppy Driver — installed by the floppy driver setup. */
+const FLOPPY_DRIVER_FOLDER: FsFolder = {
+  nodeClass: "folder",
+  id: FOLDER_ID.FLOPPY_DRIVER,
+  name: "Floppy Driver",
+  path: "C:\\Program Files\\Floppy Driver",
+  initialState: { state: FS_STATE.HIDDEN },
+  children: [
+    txt(
+      FILE_ID.FLOPPY_README,
+      "Readme.txt",
+      "C:\\Program Files\\Floppy Driver\\Readme.txt",
+      "floppy-readme",
+      { state: FS_STATE.HIDDEN },
+    ),
+  ],
+};
+
 const DRIVE_C: FsDrive = {
-  kind: "drive",
-  id: "c",
+  nodeClass: "drive",
+  id: DRIVE_ID.C,
   name: "(C:)",
   path: "C:\\",
-  requiredPermission: Permission.USER,
+  initialState: { state: FS_STATE.NORMAL },
   children: [
     {
-      kind: "folder",
-      id: "my-documents",
+      nodeClass: "folder",
+      id: FOLDER_ID.MY_DOCUMENTS,
       name: "My Documents",
       path: "C:\\My Documents",
-      requiredPermission: Permission.USER,
-      children: [],
-      programs: [],
-    },
-    {
-      kind: "folder",
-      id: "program-files",
-      name: "Program Files",
-      path: "C:\\Program Files",
-      requiredPermission: Permission.USER,
-      children: [],
-      programs: [],
-    },
-    {
-      kind: "folder",
-      id: "my-downloads",
-      name: "My Downloads",
-      path: "C:\\My Downloads",
-      requiredPermission: Permission.USER,
-      children: [],
-      programs: [
-        {
-          kind: "file-exe",
-          id: "exe-floppy-driver-setup",
-          name: "Floppy Driver Setup.exe",
-          path: "C:\\My Downloads\\Floppy Driver Setup.exe",
-          program: "floppy-driver-setup",
-        },
+      initialState: { state: FS_STATE.NORMAL },
+      children: [
+        txt(FILE_ID.READ_ME, "Read Me.txt", "C:\\My Documents\\Read Me.txt", "readme"),
+        txt(FILE_ID.MY_NOTES, "My Notes.txt", "C:\\My Documents\\My Notes.txt", "notes"),
+        txt(FILE_ID.NETWORK_NOTE, "network.txt", "C:\\My Documents\\network.txt", "network"),
       ],
     },
     {
-      kind: "folder",
-      id: "system32",
+      nodeClass: "folder",
+      id: FOLDER_ID.PROGRAM_FILES,
+      name: "Program Files",
+      path: "C:\\Program Files",
+      initialState: { state: FS_STATE.NORMAL },
+      children: [FLOPPY_DRIVER_FOLDER],
+    },
+    {
+      nodeClass: "folder",
+      id: FOLDER_ID.MY_DOWNLOADS,
+      name: "My Downloads",
+      path: "C:\\My Downloads",
+      initialState: { state: FS_STATE.NORMAL },
+      children: [
+        exe(
+          FILE_ID.FLOPPY_SETUP,
+          "Floppy Driver Setup.exe",
+          "C:\\My Downloads\\Floppy Driver Setup.exe",
+          "floppy-driver-setup",
+        ),
+      ],
+    },
+    {
+      nodeClass: "folder",
+      id: FOLDER_ID.SYSTEM32,
       name: "system32",
       path: "C:\\system32",
-      requiredPermission: Permission.SYSTEM,
+      initialState: {
+        state: FS_STATE.FORBIDDEN,
+        errorMessage: "C:\\system32 is not accessible. You do not have permission.",
+      },
       children: [],
-      programs: [],
     },
   ],
 };
 
 /** The floppy disk drive — locked until the floppy driver is installed. */
-const FLOPPY_DRIVE: FsDrive = {
-  kind: "drive",
-  id: "f",
+const DRIVE_FLOPPY: FsDrive = {
+  nodeClass: "drive",
+  id: DRIVE_ID.FLOPPY,
   name: "(F:)",
   path: "F:\\",
-  requiredPermission: Permission.USER,
-  requiresDriver: "floppy-driver",
+  initialState: {
+    state: FS_STATE.FORBIDDEN,
+    errorMessage: "F:\\ is not accessible. The required driver is not installed.",
+  },
   children: [],
 };
 
 export const FS_ROOT: FsRoot = {
-  kind: "root",
+  nodeClass: "root",
   id: "root",
   name: "My Computer",
   path: "My Computer",
-  requiredPermission: Permission.USER,
-  children: [DRIVE_C, FLOPPY_DRIVE],
+  initialState: { state: FS_STATE.NORMAL },
+  children: [DRIVE_C, DRIVE_FLOPPY],
 };
 
 /** The id Explorer starts at when its window has no seeded location. */
 export const FS_ROOT_ID = FS_ROOT.id;
 
-// Static container index, built once. Files are never indexed — navigation
-// only ever enters containers (files open Notepad), so this covers history,
-// the address bar, and Up-navigation lookups.
-const NODE_BY_ID = new Map<string, FsContainer>();
+// Indexes, built once from the static tree. Containers cover navigation
+// (history, address bar, Up); every node (incl. files) is collected for the
+// filesystem store to seed initial states from.
+const CONTAINER_BY_ID = new Map<string, FsContainer>();
 const PARENT_BY_ID = new Map<string, string | null>();
 
-function indexContainer(node: FsContainer, parentId: string | null) {
-  NODE_BY_ID.set(node.id, node);
+/** Every predefined node, flattened — the filesystem store seeds states here. */
+export const ALL_NODES: FsNode[] = [];
+
+function index(node: FsNode, parentId: string | null) {
+  ALL_NODES.push(node);
   PARENT_BY_ID.set(node.id, parentId);
-  for (const child of node.children) indexContainer(child, node.id);
+  if (node.nodeClass === "file") return;
+  CONTAINER_BY_ID.set(node.id, node);
+  for (const child of node.children) index(child, node.id);
 }
 
-indexContainer(FS_ROOT, null);
+index(FS_ROOT, null);
 
-/** The container id under which installed program folders live. */
-const PROGRAM_FILES_ID = "program-files";
-
-/** A program-files prefix that marks a dynamically-installed folder's id. */
-const INSTALLED_PREFIX = "installed-";
-
-const installedFolderId = (driverId: string) => `${INSTALLED_PREFIX}${driverId}`;
-
-/**
- * Build the (runtime) folder for an installed program. Its `programs` are the
- * shipped exes; its txt children derive from the documents store by path, just
- * like any static folder (see `listChildren`).
- */
-function installedFolder(program: InstalledProgram): FsFolder {
-  const path = `C:\\Program Files\\${program.name}`;
-  return {
-    kind: "folder",
-    id: installedFolderId(program.driverId),
-    name: program.name,
-    path,
-    requiredPermission: Permission.USER,
-    children: [],
-    programs: program.exes.map((exe) => ({
-      kind: "file-exe",
-      id: `exe-${program.driverId}-${exe.name}`,
-      name: exe.name,
-      path: `${path}\\${exe.name}`,
-      program: exe.program,
-    })),
-  };
-}
-
-/**
- * Resolve a container by id. The static tree is the source of truth for the
- * fixed skeleton; ids prefixed `installed-` resolve against the system store's
- * installed programs, so runtime-created Program Files folders are navigable.
- */
-export function getContainer(
-  id: string,
-  installed: Record<string, InstalledProgram>,
-): FsContainer | undefined {
-  const staticNode = NODE_BY_ID.get(id);
-  if (staticNode) return staticNode;
-
-  const program = Object.values(installed).find(
-    (p) => installedFolderId(p.driverId) === id,
-  );
-  return program ? installedFolder(program) : undefined;
+/** Resolve a container by id. Files are never navigated into. */
+export function getContainer(id: string): FsContainer | undefined {
+  return CONTAINER_BY_ID.get(id);
 }
 
 /** The parent container's id, or null at the root. */
 export function parentId(id: string): string | null {
-  if (PARENT_BY_ID.has(id)) return PARENT_BY_ID.get(id) ?? null;
-  // Installed folders are children of Program Files (not in the static index).
-  if (id.startsWith(INSTALLED_PREFIX)) return PROGRAM_FILES_ID;
-  return null;
-}
-
-/** The directory portion of an in-world path ("C:\A\b.txt" → "C:\A"). */
-function dirOf(path: string): string {
-  const i = path.lastIndexOf("\\");
-  return i === -1 ? path : path.slice(0, i);
-}
-
-/** The final segment of a path ("C:\A\b.txt" → "b.txt"). */
-function baseOf(path: string): string {
-  const i = path.lastIndexOf("\\");
-  return i === -1 ? path : path.slice(i + 1);
-}
-
-/**
- * The children to display inside a container: its static sub-containers and
- * program entries, plus the documents that live directly in this folder
- * (derived from the documents store so the listing stays in sync).
- */
-export function listChildren(
-  node: FsContainer,
-  docs: Record<string, GameDocument>,
-  installed: Record<string, InstalledProgram>,
-): FsNode[] {
-  const containers: FsNode[] = [...node.children];
-  // Program Files also lists one derived folder per installed program.
-  if (node.id === PROGRAM_FILES_ID) {
-    for (const program of Object.values(installed)) {
-      containers.push(installedFolder(program));
-    }
-  }
-  if (node.kind !== "folder") return containers;
-
-  const files: FsFileTxt[] = Object.values(docs)
-    .filter((doc) => dirOf(doc.path) === node.path)
-    .map((doc) => ({
-      kind: "file-txt",
-      id: `file-${doc.id}`,
-      name: baseOf(doc.path),
-      path: doc.path,
-      docId: doc.id,
-    }));
-
-  return [...containers, ...node.programs, ...files];
+  return PARENT_BY_ID.get(id) ?? null;
 }
