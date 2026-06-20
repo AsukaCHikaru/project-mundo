@@ -13,13 +13,14 @@ interface WindowProps {
  * A single window shell: title bar with controls + a content area.
  *
  * Dragging is wired with anime.js's `createDraggable`, with the title bar as
- * the drag handle. The axes are mapped to `left`/`top` (not the default
- * `translate` transform), so anime and React write the *same* CSS properties —
- * `draggable.x/y` are absolute coordinates, and there's nothing to reconcile.
- * anime drives the gesture outside React (no per-frame re-renders); `rect`
- * doesn't change during the drag, so React never clobbers anime's writes, and
- * we touch the store just once, on settle. Clicking anywhere brings the window
- * to the front.
+ * the drag handle. anime drives the gesture imperatively via a `translate`
+ * transform (outside React's render cycle, so no per-frame re-renders). React
+ * stays the sole owner of `left/top`. On settle we read the window's actually-
+ * rendered position (`getBoundingClientRect`, transform baked in), `reset()`
+ * anime completely so none of its internal coordinate/scroll state can re-apply
+ * an offset, clear the transform, and commit the new `left/top`. Because the
+ * transform is always 0 between drags, later re-renders can't desync the
+ * position. Clicking anywhere brings the window to the front.
  */
 export function Window({ window }: WindowProps) {
   const { focusedId, focus, close, setStatus } = useDesktop(
@@ -49,10 +50,6 @@ export function Window({ window }: WindowProps) {
 
     const draggable = createDraggable(el, {
       trigger: handle,
-      // Drive left/top directly instead of a transform, so anime and React
-      // write the same properties — no transform left over to double-count.
-      x: { mapTo: "left" },
-      y: { mapTo: "top" },
       // No release momentum — the window snaps to exactly where it's dropped
       // (Win9x windows have no inertia/throw).
       velocityMultiplier: 0,
@@ -63,17 +60,28 @@ export function Window({ window }: WindowProps) {
       // before it bubbles to the window's onPointerDown — raise here instead.
       onGrab: () => useDesktop.getState().focus(id),
       onSettle: () => {
-        const state = useDesktop.getState();
-        const win = state.windows[id];
-        if (!win) return;
-        // draggable.x/y are absolute left/top; commit them (no-op for clicks).
-        const nextX = Math.round(draggable.x);
-        const nextY = Math.round(draggable.y);
-        if (nextX === win.rect.x && nextY === win.rect.y) return;
-        state.move(id, nextX, nextY);
-        // anime sets an inline z-index on grab; clear it so stacking stays
-        // purely paint-order driven (the onGrab focus already raised us).
+        const win = useDesktop.getState().windows[id];
+        const parent = el.offsetParent as HTMLElement | null;
+        if (!win || !parent) return;
+        // Where anime actually rendered the window (transform included),
+        // relative to the positioning parent — i.e. the new left/top. Reading
+        // the DOM rather than anime's internal x/y sidesteps its transform vs.
+        // scroll coordinate bookkeeping.
+        const elRect = el.getBoundingClientRect();
+        const parentRect = parent.getBoundingClientRect();
+        const nextX = Math.round(elRect.left - parentRect.left);
+        const nextY = Math.round(elRect.top - parentRect.top);
+        // Fully clear anime's drag state (transform, coords, tickers) so nothing
+        // re-applies an offset after we pin the position. Then drop the inline
+        // transform/z-index anime left on the element.
+        draggable.reset();
+        el.style.transform = "";
         el.style.zIndex = "";
+        if (nextX === win.rect.x && nextY === win.rect.y) return; // plain click
+        // Pin the new position now; React renders the same left/top from rect.
+        el.style.left = `${nextX}px`;
+        el.style.top = `${nextY}px`;
+        useDesktop.getState().move(id, nextX, nextY);
       },
     });
     draggableRef.current = draggable;
