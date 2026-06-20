@@ -10,6 +10,12 @@ export interface NotepadPayload {
   docId: string;
 }
 
+/** Payload for `appType: "explorer"` windows — the filesystem node to start at. */
+export interface ExplorerPayload {
+  /** Container id to open at; defaults to the root ("My Computer") when absent. */
+  nodeId?: string;
+}
+
 export interface Rect {
   x: number;
   y: number;
