@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { type Mail, type MailFolder } from "../content/mail";
 import { useConnection } from "../store/connection";
@@ -28,6 +29,7 @@ export function Email() {
   const error = useDialogs((s) => s.error);
   const {
     mails,
+    incoming,
     selectedFolder,
     selectedMailId,
     selectFolder,
@@ -36,12 +38,20 @@ export function Email() {
   } = useMail(
     useShallow((s) => ({
       mails: s.mails,
+      incoming: s.incoming,
       selectedFolder: s.selectedFolder,
       selectedMailId: s.selectedMailId,
       selectFolder: s.selectFolder,
       selectMail: s.selectMail,
       receive: s.receive,
     })),
+  );
+
+  // Old-school "you've got mail" check: snapshot the connection once, when the
+  // window opens. If you connect *after* it's already open, no badge appears —
+  // you'd only learn of waiting mail the next time you launch Email.
+  const [connectedOnOpen] = useState(
+    () => useConnection.getState().status === "connected",
   );
 
   const folderMails = mails.filter((mail) => mail.folder === selectedFolder);
@@ -61,7 +71,12 @@ export function Email() {
       <div className="bevel-out flex gap-1 bg-win-face p-1">
         <ActionButton glyph="📝" label="Compose" />
         <ActionButton glyph="↩️" label="Reply" disabled={!selectedMail} />
-        <ActionButton glyph="📡" label="Send/Receive" onPress={sendReceive} />
+        <ActionButton
+          glyph="📡"
+          label="Send/Receive"
+          onPress={sendReceive}
+          badge={connectedOnOpen && incoming.length > 0}
+        />
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -134,6 +149,8 @@ interface ActionButtonProps {
   label: string;
   onPress?: () => void;
   disabled?: boolean;
+  /** Show a notification dot — e.g. Send/Receive when mail is waiting. */
+  badge?: boolean;
 }
 
 function ActionButton({
@@ -141,16 +158,22 @@ function ActionButton({
   label,
   onPress,
   disabled = false,
+  badge = false,
 }: ActionButtonProps) {
   return (
-    <BevelButton
-      onPress={onPress}
-      disabled={disabled}
-      className="flex items-center gap-1 px-3 py-1"
-    >
-      <span>{glyph}</span>
-      <span>{label}</span>
-    </BevelButton>
+    <div className="relative">
+      <BevelButton
+        onPress={onPress}
+        disabled={disabled}
+        className="flex items-center gap-1 px-3 py-1"
+      >
+        <span>{glyph}</span>
+        <span>{label}</span>
+      </BevelButton>
+      {badge && (
+        <span className="pointer-events-none absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full border border-white bg-red-600" />
+      )}
+    </div>
   );
 }
 
