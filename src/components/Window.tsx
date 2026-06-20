@@ -140,7 +140,11 @@ export function Window({ window }: WindowProps) {
 
       {/* Content area */}
       <div className="bevel-in m-0.5 flex-1 overflow-auto bg-white p-2 text-sm text-black">
-        <WindowContent appType={window.appType} payload={window.payload} />
+        <WindowContent
+          windowId={id}
+          appType={window.appType}
+          payload={window.payload}
+        />
       </div>
     </div>
   );

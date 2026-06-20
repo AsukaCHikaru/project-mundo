@@ -6,12 +6,14 @@ import {
   listChildren,
   parentId,
 } from "../content/filesystem";
+import { PROGRAMS } from "../content/programs";
 import { hasPermission } from "../lib/permission";
 import { type ExplorerPayload } from "../store/desktop";
 import { useDesktop } from "../store/desktop";
 import { useDialogs } from "../store/dialogs";
 import { useDocuments } from "../store/documents";
 import { usePermission } from "../store/permission";
+import { useSystem } from "../store/system";
 import { BevelButton } from "./BevelButton";
 
 interface ExplorerProps {
@@ -38,20 +40,23 @@ const GLYPH: Record<FsNode["kind"], string> = {
 export function Explorer({ payload }: ExplorerProps) {
   const open = useDesktop((s) => s.open);
   const docs = useDocuments((s) => s.docs);
+  const installed = useSystem((s) => s.installed);
   const level = usePermission((s) => s.level);
   const error = useDialogs((s) => s.error);
 
   // Per-window navigation history: a stack of container ids + a cursor.
   const [history, setHistory] = useState<string[]>(() => [
-    payload?.nodeId && getContainer(payload.nodeId)
+    payload?.nodeId && getContainer(payload.nodeId, installed)
       ? payload.nodeId
       : FS_ROOT_ID,
   ]);
   const [cursor, setCursor] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const current = getContainer(history[cursor] ?? FS_ROOT_ID) ?? getContainer(FS_ROOT_ID)!;
-  const children = listChildren(current, docs);
+  const current =
+    getContainer(history[cursor] ?? FS_ROOT_ID, installed) ??
+    getContainer(FS_ROOT_ID, installed)!;
+  const children = listChildren(current, docs, installed);
 
   const canBack = cursor > 0;
   const canForward = cursor < history.length - 1;
@@ -89,9 +94,12 @@ export function Explorer({ payload }: ExplorerProps) {
         });
         break;
       }
-      case "file-exe":
-        // No programs exist yet — a future runner hooks in here.
+      case "file-exe": {
+        const program = PROGRAMS[node.program];
+        if (program) program.launch(open);
+        else error(`Cannot run ${node.name}.`, "Cannot Run Program");
         break;
+      }
     }
   };
 

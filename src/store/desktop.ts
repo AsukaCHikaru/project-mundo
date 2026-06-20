@@ -1,7 +1,13 @@
 import { create } from "zustand";
 
 /** Identifier for a kind of program/document that can be opened in a window. */
-export type AppType = "explorer" | "notepad" | "recycle-bin" | "dialup" | "email";
+export type AppType =
+  | "explorer"
+  | "notepad"
+  | "recycle-bin"
+  | "dialup"
+  | "email"
+  | "installer";
 
 export type WindowStatus = "normal" | "minimized" | "maximized";
 
@@ -14,6 +20,12 @@ export interface NotepadPayload {
 export interface ExplorerPayload {
   /** Container id to open at; defaults to the root ("My Computer") when absent. */
   nodeId?: string;
+}
+
+/** Payload for `appType: "installer"` windows — which program to install. */
+export interface InstallerPayload {
+  /** Driver id, resolved against the program registry's install configs. */
+  driverId: string;
 }
 
 export interface Rect {

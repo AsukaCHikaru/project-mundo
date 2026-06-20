@@ -1,4 +1,5 @@
 import { Permission, type PermissionLevel } from "../lib/permission";
+import { type InstalledProgram } from "../store/system";
 import { type GameDocument } from "./documents";
 
 /**
@@ -51,9 +52,11 @@ export interface FsFileTxt extends FsBase {
   docId: string;
 }
 
-/** A program entry. Double-click is a no-op until a runner is wired in. */
+/** A program entry. Launching dispatches through the program registry. */
 export interface FsFileExe extends FsBase {
   kind: "file-exe";
+  /** Registry key (see `content/programs`) that maps to launch behavior. */
+  program: string;
 }
 
 /** The default in-world tree. C: is the only drive. */
@@ -89,7 +92,15 @@ const DRIVE_C: FsDrive = {
       path: "C:\\My Downloads",
       requiredPermission: Permission.USER,
       children: [],
-      programs: [],
+      programs: [
+        {
+          kind: "file-exe",
+          id: "exe-floppy-driver-setup",
+          name: "Floppy Driver Setup.exe",
+          path: "C:\\My Downloads\\Floppy Driver Setup.exe",
+          program: "floppy-driver-setup",
+        },
+      ],
     },
     {
       kind: "folder",
@@ -129,14 +140,62 @@ function indexContainer(node: FsContainer, parentId: string | null) {
 
 indexContainer(FS_ROOT, null);
 
-/** Resolve a container by id (drives/folders/root). */
-export function getContainer(id: string): FsContainer | undefined {
-  return NODE_BY_ID.get(id);
+/** The container id under which installed program folders live. */
+const PROGRAM_FILES_ID = "program-files";
+
+/** A program-files prefix that marks a dynamically-installed folder's id. */
+const INSTALLED_PREFIX = "installed-";
+
+const installedFolderId = (driverId: string) => `${INSTALLED_PREFIX}${driverId}`;
+
+/**
+ * Build the (runtime) folder for an installed program. Its `programs` are the
+ * shipped exes; its txt children derive from the documents store by path, just
+ * like any static folder (see `listChildren`).
+ */
+function installedFolder(program: InstalledProgram): FsFolder {
+  const path = `C:\\Program Files\\${program.name}`;
+  return {
+    kind: "folder",
+    id: installedFolderId(program.driverId),
+    name: program.name,
+    path,
+    requiredPermission: Permission.USER,
+    children: [],
+    programs: program.exes.map((exe) => ({
+      kind: "file-exe",
+      id: `exe-${program.driverId}-${exe.name}`,
+      name: exe.name,
+      path: `${path}\\${exe.name}`,
+      program: exe.program,
+    })),
+  };
+}
+
+/**
+ * Resolve a container by id. The static tree is the source of truth for the
+ * fixed skeleton; ids prefixed `installed-` resolve against the system store's
+ * installed programs, so runtime-created Program Files folders are navigable.
+ */
+export function getContainer(
+  id: string,
+  installed: Record<string, InstalledProgram>,
+): FsContainer | undefined {
+  const staticNode = NODE_BY_ID.get(id);
+  if (staticNode) return staticNode;
+
+  const program = Object.values(installed).find(
+    (p) => installedFolderId(p.driverId) === id,
+  );
+  return program ? installedFolder(program) : undefined;
 }
 
 /** The parent container's id, or null at the root. */
 export function parentId(id: string): string | null {
-  return PARENT_BY_ID.get(id) ?? null;
+  if (PARENT_BY_ID.has(id)) return PARENT_BY_ID.get(id) ?? null;
+  // Installed folders are children of Program Files (not in the static index).
+  if (id.startsWith(INSTALLED_PREFIX)) return PROGRAM_FILES_ID;
+  return null;
 }
 
 /** The directory portion of an in-world path ("C:\A\b.txt" → "C:\A"). */
@@ -159,8 +218,15 @@ function baseOf(path: string): string {
 export function listChildren(
   node: FsContainer,
   docs: Record<string, GameDocument>,
+  installed: Record<string, InstalledProgram>,
 ): FsNode[] {
-  const containers: FsNode[] = node.children;
+  const containers: FsNode[] = [...node.children];
+  // Program Files also lists one derived folder per installed program.
+  if (node.id === PROGRAM_FILES_ID) {
+    for (const program of Object.values(installed)) {
+      containers.push(installedFolder(program));
+    }
+  }
   if (node.kind !== "folder") return containers;
 
   const files: FsFileTxt[] = Object.values(docs)
