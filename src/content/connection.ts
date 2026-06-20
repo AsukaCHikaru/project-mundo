@@ -1,5 +1,5 @@
 import { Permission } from "../lib/permission";
-import { type GameDocument } from "./documents";
+import { type GameDocument } from "../lib/documents";
 
 /** A classic fake "555" phone number with a random 4-digit line. */
 function randomDialUpNumber(): string {

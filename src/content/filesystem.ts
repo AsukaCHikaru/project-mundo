@@ -1,6 +1,15 @@
-import { Permission, type PermissionLevel } from "../lib/permission";
+import { Permission } from "../lib/permission";
+import {
+  type FsContainer,
+  type FsDrive,
+  type FsFileExe,
+  type FsFileTxt,
+  type FsFolder,
+  type FsNode,
+  type FsRoot,
+} from "../lib/filesystem";
+import { type GameDocument } from "../lib/documents";
 import { type InstalledProgram } from "../store/system";
-import { type GameDocument } from "./documents";
 
 /**
  * In-world filesystem — the single source of truth for the drive/folder tree
@@ -9,60 +18,6 @@ import { type GameDocument } from "./documents";
  * documents store at render time (see `listChildren`), so a document placed in
  * a folder's path appears automatically and never drifts from its real title.
  */
-export type FsNode =
-  | FsContainer
-  | FsFileTxt
-  | FsFileExe;
-
-export type FsContainer = FsRoot | FsDrive | FsFolder;
-
-interface FsBase {
-  id: string;
-  /** Display name, e.g. "My Documents" or "Read Me.txt". */
-  name: string;
-  /** Full in-world path shown in the address bar, e.g. "C:\My Documents". */
-  path: string;
-  /**
-   * If set, the node is inaccessible until this driver (by id) is installed:
-   * it shows translucent and opening it raises a "no driver" error.
-   */
-  requiresDriver?: string;
-}
-
-/** The virtual top level ("My Computer") whose children are the drives. */
-export interface FsRoot extends FsBase {
-  kind: "root";
-  requiredPermission: PermissionLevel;
-  children: FsContainer[];
-}
-
-export interface FsDrive extends FsBase {
-  kind: "drive";
-  requiredPermission: PermissionLevel;
-  children: FsContainer[];
-}
-
-export interface FsFolder extends FsBase {
-  kind: "folder";
-  /** Permission required to enter this folder. */
-  requiredPermission: PermissionLevel;
-  children: FsContainer[];
-  /** Static program entries inside this folder (exes added by hand). */
-  programs: FsFileExe[];
-}
-
-/** A text file; opens its referenced document in Notepad. */
-export interface FsFileTxt extends FsBase {
-  kind: "file-txt";
-  docId: string;
-}
-
-/** A program entry. Launching dispatches through the program registry. */
-export interface FsFileExe extends FsBase {
-  kind: "file-exe";
-  /** Registry key (see `content/programs`) that maps to launch behavior. */
-  program: string;
-}
 
 /** The default in-world tree. C: is the only drive. */
 const DRIVE_C: FsDrive = {

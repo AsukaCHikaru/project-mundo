@@ -1,11 +1,11 @@
 import { useState } from "react";
 import {
-  type FsNode,
   FS_ROOT_ID,
   getContainer,
   listChildren,
   parentId,
 } from "../content/filesystem";
+import { type FsNode } from "../lib/filesystem";
 import { PROGRAMS } from "../content/programs";
 import { hasPermission } from "../lib/permission";
 import { type ExplorerPayload } from "../store/desktop";

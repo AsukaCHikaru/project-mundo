@@ -1,10 +1,6 @@
 import { create } from "zustand";
-import {
-  INCOMING_MAILS,
-  INITIAL_MAILS,
-  type Mail,
-  type MailFolder,
-} from "../content/mail";
+import { INCOMING_MAILS, INITIAL_MAILS } from "../content/mail";
+import { type Mail, type MailFolder } from "../lib/mail";
 
 interface MailState {
   /** Mail currently in the mailbox, across all folders. */

@@ -1,8 +1,6 @@
 import { create } from "zustand";
-import {
-  INSTALL_BY_DRIVER_ID,
-  type ShortcutConfig,
-} from "../content/programs";
+import { INSTALL_BY_DRIVER_ID } from "../content/programs";
+import { type ShortcutConfig } from "../lib/programs";
 import { Permission } from "../lib/permission";
 import { useDocuments } from "./documents";
 

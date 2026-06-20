@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { type Mail, type MailFolder } from "../content/mail";
+import { type Mail, type MailFolder } from "../lib/mail";
 import { useConnection } from "../store/connection";
 import { useDialogs } from "../store/dialogs";
 import { useMail } from "../store/mail";

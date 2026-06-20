@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { CONNECTION_DOC } from "../content/connection";
-import { DEFAULT_DOCUMENTS, type GameDocument } from "../content/documents";
+import { DEFAULT_DOCUMENTS } from "../content/documents";
+import { type GameDocument } from "../lib/documents";
 
 /** All documents present at game start: CSV defaults plus generated ones. */
 const SEED_DOCUMENTS: GameDocument[] = [...DEFAULT_DOCUMENTS, CONNECTION_DOC];

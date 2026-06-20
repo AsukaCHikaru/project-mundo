@@ -1,16 +1,7 @@
-import { type PermissionLevel, permissionFromName } from "../lib/permission";
+import { permissionFromName } from "../lib/permission";
+import { type GameDocument } from "../lib/documents";
 import csvText from "./documents.csv" with { type: "text" };
 import { parseCsv } from "./csv";
-
-export interface GameDocument {
-  id: string;
-  title: string;
-  /** In-world filesystem location, e.g. "C:\My Documents\Read Me.txt". */
-  path: string;
-  body: string;
-  /** Permission required to modify this document. */
-  editPermission: PermissionLevel;
-}
 
 /** Parses the documents CSV into typed records, mapping columns by header name. */
 function parseDocuments(csv: string): GameDocument[] {
