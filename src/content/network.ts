@@ -7,25 +7,44 @@ function randomDialUpNumber(): string {
 }
 
 /**
- * The credentials required to connect. Generated once per session — the network
- * note (in documents.csv) ships with placeholders that are filled from this same
- * object at seed time, so the in-world clue and the dial-up check can never
+ * A dial-up account: the credentials that reach the ISP plus the connection
+ * `speed` (KB/s) it grants once connected. Future puzzles can introduce faster
+ * accounts; the connected speed is registered in the system store on logon.
+ */
+export interface NetworkAccount {
+  phoneNumber: string;
+  username: string;
+  password: string;
+  /** Connection throughput in KB/s, registered in the system on connect. */
+  speed: number;
+}
+
+/**
+ * The network config. Generated once per session — the network note (in
+ * documents.csv) ships with placeholders that are filled from this same
+ * `account` at seed time, so the in-world clue and the dial-up check can never
  * disagree. (Random number is a placeholder for now.)
  */
-export const NETWORK = {
-  phoneNumber: randomDialUpNumber(),
-  username: "admin",
-  password: "password",
-} as const;
+export const NETWORK: { account: NetworkAccount } = {
+  account: {
+    phoneNumber: randomDialUpNumber(),
+    username: "admin",
+    password: "password",
+    speed: 1,
+  },
+};
 
 /** Whether the entered dial-up number reaches the ISP (checked while dialing). */
 export function validatePhoneNumber(phoneNumber: string): boolean {
-  return phoneNumber.trim() === NETWORK.phoneNumber;
+  return phoneNumber.trim() === NETWORK.account.phoneNumber;
 }
 
 /** Whether the entered login is accepted (checked while verifying). */
 export function validateLogin(username: string, password: string): boolean {
-  return username.trim() === NETWORK.username && password === NETWORK.password;
+  return (
+    username.trim() === NETWORK.account.username &&
+    password === NETWORK.account.password
+  );
 }
 
 /** The network note whose body carries the live credentials (see below). */
@@ -45,7 +64,7 @@ export function withNetworkCredentials(docs: GameDocument[]): GameDocument[] {
 
 function fillCredentials(body: string): string {
   return body
-    .replaceAll("{{phone}}", NETWORK.phoneNumber)
-    .replaceAll("{{user}}", NETWORK.username)
-    .replaceAll("{{password}}", NETWORK.password);
+    .replaceAll("{{phone}}", NETWORK.account.phoneNumber)
+    .replaceAll("{{user}}", NETWORK.account.username)
+    .replaceAll("{{password}}", NETWORK.account.password);
 }

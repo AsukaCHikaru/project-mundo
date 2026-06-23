@@ -2,7 +2,14 @@ import { create } from "zustand";
 import { PROGRAM_ID, type ProgramId } from "../content/programs";
 import { Permission, type PermissionLevel } from "../lib/permission";
 
-export type NetworkStatus = "offline" | "connected";
+/**
+ * The internet connection. When `connected` it carries the dial-up account's
+ * `speed` (KB/s) — registered here on connect so anything that cares about
+ * throughput (e.g. the downloader) reads it from one place.
+ */
+export type NetworkStatus =
+  | { state: "offline" }
+  | { state: "connected"; speed: number };
 
 /**
  * The machine's status, in one place: the internet connection, the player's
@@ -23,7 +30,8 @@ interface SystemState {
   /** Install flags, keyed by program id. */
   installed: Record<ProgramId, boolean>;
 
-  connect: () => void;
+  /** Go online at `speed` KB/s (the connecting account's throughput). */
+  connect: (speed: number) => void;
   disconnect: () => void;
   /** Raise the player's permission. No-op if already at or above `level`. */
   grant: (level: PermissionLevel) => void;
@@ -36,12 +44,12 @@ const NONE_INSTALLED = Object.fromEntries(
 ) as Record<ProgramId, boolean>;
 
 export const useSystem = create<SystemState>((set) => ({
-  network: "offline",
+  network: { state: "offline" },
   permission: Permission.USER,
   installed: { ...NONE_INSTALLED },
 
-  connect: () => set({ network: "connected" }),
-  disconnect: () => set({ network: "offline" }),
+  connect: (speed) => set({ network: { state: "connected", speed } }),
+  disconnect: () => set({ network: { state: "offline" } }),
 
   grant: (level) =>
     set((state) => (level > state.permission ? { permission: level } : state)),

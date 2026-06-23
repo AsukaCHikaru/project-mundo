@@ -1,4 +1,5 @@
 import { useShallow } from "zustand/react/shallow";
+import { NETWORK } from "../content/network";
 import { useSystem } from "../store/system";
 import { BevelButton } from "./BevelButton";
 
@@ -17,14 +18,14 @@ export function DevToolbar() {
     })),
   );
 
-  const connected = network === "connected";
+  const connected = network.state === "connected";
 
   return (
     <div className="flex items-center gap-2 p-2 font-win text-xs text-white">
       <span className="opacity-70">dev</span>
       <BevelButton
         held={connected}
-        onPress={connected ? disconnect : connect}
+        onPress={connected ? disconnect : () => connect(NETWORK.account.speed)}
         className="px-2 py-0.5 text-black"
       >
         🌐 Dial-Up: {connected ? "on" : "off"}
