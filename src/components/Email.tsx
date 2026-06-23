@@ -5,6 +5,7 @@ import { useSystem } from "../store/system";
 import { useDialogs } from "../store/dialogs";
 import { useMail } from "../store/mail";
 import { BevelButton } from "./BevelButton";
+import { DownloadLink } from "./DownloadLink";
 
 interface FolderInfo {
   folder: MailFolder;
@@ -25,7 +26,7 @@ const FOLDERS: FolderInfo[] = [
  * error popup; connected downloads pending mail into the Inbox.
  */
 export function Email() {
-  const networkStatus = useSystem((s) => s.network);
+  const networkState = useSystem((s) => s.network.state);
   const error = useDialogs((s) => s.error);
   const {
     mails,
@@ -51,14 +52,14 @@ export function Email() {
   // window opens. If you connect *after* it's already open, no badge appears —
   // you'd only learn of waiting mail the next time you launch Email.
   const [connectedOnOpen] = useState(
-    () => useSystem.getState().network === "connected",
+    () => useSystem.getState().network.state === "connected",
   );
 
   const folderMails = mails.filter((mail) => mail.folder === selectedFolder);
   const selectedMail = folderMails.find((mail) => mail.id === selectedMailId);
 
   const sendReceive = () => {
-    if (networkStatus !== "connected") {
+    if (networkState !== "connected") {
       error("Send/Receive failed. You are not connected to the internet.");
       return;
     }
@@ -133,6 +134,13 @@ export function Email() {
                   <p className="text-xs">{selectedMail.date}</p>
                 </header>
                 <p className="whitespace-pre-wrap">{selectedMail.body}</p>
+                {selectedMail.download && (
+                  <p className="mt-2">
+                    <DownloadLink downloadId={selectedMail.download.id}>
+                      {selectedMail.download.label}
+                    </DownloadLink>
+                  </p>
+                )}
               </article>
             ) : (
               <p className="text-win-shadow">Select a message to read it.</p>

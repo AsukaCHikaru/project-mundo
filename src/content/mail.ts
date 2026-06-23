@@ -6,6 +6,7 @@
  */
 
 import { type Mail } from "../lib/mail";
+import { DOWNLOAD_ID } from "./downloads";
 
 /** Mail present in the mailbox at game start. Inbox/Outbox/Drafts all empty. */
 export const INITIAL_MAILS: Mail[] = [];
@@ -44,5 +45,16 @@ This is your first message. If you can read it, your connection is working.
   * Compose to write a new message.
 
 Happy mailing!`,
+  },
+  {
+    id: "floppy-driver-download",
+    folder: "inbox",
+    from: "downloads@mundo.net",
+    to: "you@mundo.net",
+    subject: "Your Floppy Driver download is ready",
+    date: "Tue 6/16/1998 2:13 PM",
+    read: false,
+    body: `The driver you requested is ready. Click the link below to download it:`,
+    download: { id: DOWNLOAD_ID.FLOPPY_SETUP, label: "Download Floppy Driver Setup.exe" },
   },
 ];

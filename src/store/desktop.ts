@@ -7,7 +7,8 @@ export type AppType =
   | "recycle-bin"
   | "dialup"
   | "email"
-  | "installer";
+  | "installer"
+  | "downloader";
 
 export type WindowStatus = "normal" | "minimized" | "maximized";
 
@@ -26,6 +27,12 @@ export interface ExplorerPayload {
 export interface InstallerPayload {
   /** Install flag id, resolved against the program registry's install configs. */
   programId: string;
+}
+
+/** Payload for `appType: "downloader"` windows — which file to download. */
+export interface DownloaderPayload {
+  /** Download id, resolved against the download registry (see content/downloads). */
+  downloadId: string;
 }
 
 export interface Rect {
@@ -71,6 +78,7 @@ const DEFAULT_RECT: Rect = { x: 80, y: 80, w: 480, h: 320 };
 /** Per-app default size, used when `open` isn't given an explicit `rect`. */
 const APP_DEFAULT_SIZE: Partial<Record<AppType, Pick<Rect, "w" | "h">>> = {
   email: { w: 680, h: 460 },
+  downloader: { w: 380, h: 200 },
 };
 
 /** Cascades each new window slightly so they don't stack exactly. */

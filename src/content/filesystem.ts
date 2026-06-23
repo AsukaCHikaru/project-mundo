@@ -52,7 +52,15 @@ const txt = (
   path: string,
   docId: string,
   initialState: FsState = { state: FS_STATE.NORMAL },
-): FsFileTxt => ({ nodeClass: "file", fileKind: "txt", id, name, path, docId, initialState });
+): FsFileTxt => ({
+  nodeClass: "file",
+  fileKind: "txt",
+  id,
+  name,
+  path,
+  docId,
+  initialState,
+});
 
 const exe = (
   id: string,
@@ -60,7 +68,15 @@ const exe = (
   path: string,
   program: string,
   initialState: FsState = { state: FS_STATE.NORMAL },
-): FsFileExe => ({ nodeClass: "file", fileKind: "exe", id, name, path, program, initialState });
+): FsFileExe => ({
+  nodeClass: "file",
+  fileKind: "exe",
+  id,
+  name,
+  path,
+  program,
+  initialState,
+});
 
 /** Program Files > Floppy Driver — installed by the floppy driver setup. */
 const FLOPPY_DRIVER_FOLDER: FsFolder = {
@@ -94,9 +110,24 @@ const DRIVE_C: FsDrive = {
       path: "C:\\My Documents",
       initialState: { state: FS_STATE.NORMAL },
       children: [
-        txt(FILE_ID.READ_ME, "Read Me.txt", "C:\\My Documents\\Read Me.txt", "readme"),
-        txt(FILE_ID.MY_NOTES, "My Notes.txt", "C:\\My Documents\\My Notes.txt", "notes"),
-        txt(FILE_ID.NETWORK_NOTE, "network.txt", "C:\\My Documents\\network.txt", "network"),
+        txt(
+          FILE_ID.READ_ME,
+          "Read Me.txt",
+          "C:\\My Documents\\Read Me.txt",
+          "readme",
+        ),
+        txt(
+          FILE_ID.MY_NOTES,
+          "My Notes.txt",
+          "C:\\My Documents\\My Notes.txt",
+          "notes",
+        ),
+        txt(
+          FILE_ID.NETWORK_NOTE,
+          "network.txt",
+          "C:\\My Documents\\network.txt",
+          "network",
+        ),
       ],
     },
     {
@@ -119,6 +150,9 @@ const DRIVE_C: FsDrive = {
           "Floppy Driver Setup.exe",
           "C:\\My Downloads\\Floppy Driver Setup.exe",
           "floppy-driver-setup",
+          // Hidden until fetched — the downloader reveals it on completion
+          // (see content/downloads), so the file "lands" here without an append.
+          { state: FS_STATE.HIDDEN },
         ),
       ],
     },
@@ -129,7 +163,8 @@ const DRIVE_C: FsDrive = {
       path: "C:\\system32",
       initialState: {
         state: FS_STATE.FORBIDDEN,
-        errorMessage: "C:\\system32 is not accessible. You do not have permission.",
+        errorMessage:
+          "C:\\system32 is not accessible. You do not have permission.",
       },
       children: [],
     },
@@ -144,7 +179,8 @@ const DRIVE_FLOPPY: FsDrive = {
   path: "F:\\",
   initialState: {
     state: FS_STATE.FORBIDDEN,
-    errorMessage: "F:\\ is not accessible. The required driver is not installed.",
+    errorMessage:
+      "F:\\ is not accessible. The required driver is not installed.",
   },
   children: [],
 };

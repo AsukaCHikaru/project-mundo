@@ -1,10 +1,12 @@
 import {
   type AppType,
+  type DownloaderPayload,
   type ExplorerPayload,
   type InstallerPayload,
   type NotepadPayload,
 } from "../store/desktop";
 import { DialUp } from "./DialUp";
+import { Downloader } from "./Downloader";
 import { Email } from "./Email";
 import { Explorer } from "./Explorer";
 import { Installer } from "./Installer";
@@ -32,6 +34,13 @@ export function WindowContent({ windowId, appType, payload }: WindowContentProps
         <Installer
           windowId={windowId}
           payload={payload as InstallerPayload | undefined}
+        />
+      );
+    case "downloader":
+      return (
+        <Downloader
+          windowId={windowId}
+          payload={payload as DownloaderPayload | undefined}
         />
       );
     default:
