@@ -26,6 +26,20 @@ export function permissionFromName(name: string): PermissionLevel {
   return BY_NAME[name.trim().toLowerCase()] ?? Permission.USER;
 }
 
+/** Display name for a permission level (reverse of `permissionFromName`). */
+export function permissionName(level: PermissionLevel): string {
+  switch (level) {
+    case Permission.USER:
+      return "User";
+    case Permission.ADMIN:
+      return "Administrator";
+    case Permission.SYSTEM:
+      return "System";
+    default:
+      return "Unknown";
+  }
+}
+
 /** Whether `level` is sufficient to meet a `required` permission. */
 export function hasPermission(
   level: PermissionLevel,

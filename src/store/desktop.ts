@@ -8,7 +8,8 @@ export type AppType =
   | "dialup"
   | "email"
   | "installer"
-  | "downloader";
+  | "downloader"
+  | "permissions";
 
 export type WindowStatus = "normal" | "minimized" | "maximized";
 
@@ -48,6 +49,8 @@ export interface WindowState {
   title: string;
   rect: Rect;
   status: WindowStatus;
+  /** Whether the title bar shows a minimize button. Defaults to `true`. */
+  minimizable?: boolean;
   /** App-specific data, e.g. which folder an explorer window shows. */
   payload?: unknown;
 }
@@ -56,6 +59,8 @@ export interface OpenOptions {
   appType: AppType;
   title: string;
   rect?: Partial<Rect>;
+  /** Hide the minimize button (e.g. simple info dialogs). Defaults to `true`. */
+  minimizable?: boolean;
   payload?: unknown;
 }
 
@@ -79,13 +84,14 @@ const DEFAULT_RECT: Rect = { x: 80, y: 80, w: 480, h: 320 };
 const APP_DEFAULT_SIZE: Partial<Record<AppType, Pick<Rect, "w" | "h">>> = {
   email: { w: 680, h: 460 },
   downloader: { w: 380, h: 200 },
+  permissions: { w: 300, h: 200 },
 };
 
 /** Cascades each new window slightly so they don't stack exactly. */
 const CASCADE_STEP = 24;
 
 /** App types that allow only one window — `open` focuses the existing one. */
-const SINGLETON_APP_TYPES = new Set<AppType>(["dialup", "email"]);
+const SINGLETON_APP_TYPES = new Set<AppType>(["dialup", "email", "permissions"]);
 
 let idCounter = 0;
 const nextId = () => `win-${++idCounter}`;
@@ -95,7 +101,7 @@ export const useDesktop = create<DesktopState>((set, get) => ({
   order: [],
   focusedId: null,
 
-  open: ({ appType, title, rect, payload }) => {
+  open: ({ appType, title, rect, minimizable, payload }) => {
     // Singleton apps: focus (and restore) the existing window instead of
     // opening a second one.
     if (SINGLETON_APP_TYPES.has(appType)) {
@@ -119,6 +125,7 @@ export const useDesktop = create<DesktopState>((set, get) => ({
       appType,
       title,
       status: "normal",
+      minimizable,
       payload,
       rect: {
         x: (rect?.x ?? DEFAULT_RECT.x) + offset,

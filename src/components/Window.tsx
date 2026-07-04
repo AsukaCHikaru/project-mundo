@@ -119,14 +119,16 @@ export function Window({ window }: WindowProps) {
           {title}
         </span>
 
-        <BevelButton
-          aria-label="Minimize"
-          stopPointerDown
-          onPress={() => setStatus(id, "minimized")}
-          className="grid h-4 w-4 place-items-end pb-0.5 text-black"
-        >
-          <span className="block h-0.5 w-2 bg-black" />
-        </BevelButton>
+        {window.minimizable !== false && (
+          <BevelButton
+            aria-label="Minimize"
+            stopPointerDown
+            onPress={() => setStatus(id, "minimized")}
+            className="grid h-4 w-4 place-items-end pb-0.5 text-black"
+          >
+            <span className="block h-0.5 w-2 bg-black" />
+          </BevelButton>
+        )}
 
         <BevelButton
           aria-label="Close"

@@ -11,6 +11,7 @@ import { Email } from "./Email";
 import { Explorer } from "./Explorer";
 import { Installer } from "./Installer";
 import { Notepad } from "./Notepad";
+import { Permissions } from "./Permissions";
 
 interface WindowContentProps {
   windowId: string;
@@ -27,6 +28,8 @@ export function WindowContent({ windowId, appType, payload }: WindowContentProps
       return <Notepad payload={payload as NotepadPayload | undefined} />;
     case "dialup":
       return <DialUp />;
+    case "permissions":
+      return <Permissions />;
     case "email":
       return <Email />;
     case "installer":

@@ -4,6 +4,7 @@ import { useDesktop } from "../store/desktop";
 import { BevelButton } from "./BevelButton";
 import { Clock } from "./Clock";
 import { NetworkTray } from "./NetworkTray";
+import { PermissionTray } from "./PermissionTray";
 import { StartMenu } from "./StartMenu";
 
 /**
@@ -69,6 +70,8 @@ export function Taskbar() {
           );
         })}
       </div>
+
+      <PermissionTray />
 
       <NetworkTray />
 
