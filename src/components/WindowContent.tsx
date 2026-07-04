@@ -6,6 +6,7 @@ import {
   type NotepadPayload,
 } from "../store/desktop";
 import { DialUp } from "./DialUp";
+import { DllGenerator } from "./DllGenerator";
 import { Downloader } from "./Downloader";
 import { Email } from "./Email";
 import { Explorer } from "./Explorer";
@@ -39,6 +40,8 @@ export function WindowContent({ windowId, appType, payload }: WindowContentProps
           payload={payload as InstallerPayload | undefined}
         />
       );
+    case "dll-generator":
+      return <DllGenerator windowId={windowId} />;
     case "downloader":
       return (
         <Downloader

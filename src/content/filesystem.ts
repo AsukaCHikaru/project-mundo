@@ -43,6 +43,8 @@ export const FILE_ID = {
   NETWORK_NOTE: "network-note",
   FLOPPY_SETUP: "floppy-setup",
   FLOPPY_README: "floppy-readme",
+  PERMISSION_GENERATOR: "permission-generator",
+  PERMISSION_DLL: "permission-dll",
 } as const;
 
 /** Small constructors keep the tree below readable. */
@@ -154,6 +156,12 @@ const DRIVE_C: FsDrive = {
           // (see content/downloads), so the file "lands" here without an append.
           { state: FS_STATE.HIDDEN },
         ),
+        exe(
+          FILE_ID.PERMISSION_GENERATOR,
+          "Permission DLL Generator.exe",
+          "C:\\My Downloads\\Permission DLL Generator.exe",
+          "permission-dll-generator",
+        ),
       ],
     },
     {
@@ -167,6 +175,17 @@ const DRIVE_C: FsDrive = {
           "C:\\system32 is not accessible. You do not have permission.",
       },
       children: [],
+    },
+    {
+      // Hidden until the Permission DLL Generator writes it (its data lives in
+      // the permission-dll store); the boot sequence reads it for the starting
+      // permission level. Not openable — Explorer raises a "no program" error.
+      nodeClass: "file",
+      fileKind: "dll",
+      id: FILE_ID.PERMISSION_DLL,
+      name: "permission.dll",
+      path: "C:\\permission.dll",
+      initialState: { state: FS_STATE.HIDDEN },
     },
   ],
 };

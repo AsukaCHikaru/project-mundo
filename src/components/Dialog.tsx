@@ -53,15 +53,22 @@ export function Dialog({ dialog }: DialogProps) {
         <span className="flex-1">{dialog.message}</span>
       </div>
 
-      {/* Buttons */}
-      <div className="flex justify-center pb-3">
-        <BevelButton
-          autoFocus
-          onPress={dismiss}
-          className="min-w-20 px-4 py-1 text-sm text-black"
-        >
-          OK
-        </BevelButton>
+      {/* Buttons — custom set when the dialog declares one, single OK otherwise.
+          Pressing any button closes the dialog first, then runs its action. */}
+      <div className="flex justify-center gap-2 pb-3">
+        {(dialog.buttons ?? [{ label: "OK" }]).map((button, i) => (
+          <BevelButton
+            key={button.label}
+            autoFocus={i === 0}
+            onPress={() => {
+              dismiss();
+              button.onPress?.();
+            }}
+            className="min-w-20 px-4 py-1 text-sm text-black"
+          >
+            {button.label}
+          </BevelButton>
+        ))}
       </div>
     </div>
   );

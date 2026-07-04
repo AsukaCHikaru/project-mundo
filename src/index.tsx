@@ -3,10 +3,10 @@ import { createRoot } from "react-dom/client";
 
 import "./index.css";
 
-import { Desktop } from "./components/Desktop";
+import { Machine } from "./components/Machine";
 
 function App() {
-  return <Desktop />;
+  return <Machine />;
 }
 
 const root = document.getElementById("root");

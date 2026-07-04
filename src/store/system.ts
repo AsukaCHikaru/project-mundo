@@ -35,6 +35,11 @@ interface SystemState {
   disconnect: () => void;
   /** Raise the player's permission. No-op if already at or above `level`. */
   grant: (level: PermissionLevel) => void;
+  /**
+   * Set the permission outright, lowering included — the boot sequence applies
+   * the level carried by `permission.dll` (or USER when there is none).
+   */
+  setPermission: (level: PermissionLevel) => void;
   /** Flag a program installed. Idempotent. */
   install: (programId: ProgramId) => void;
 }
@@ -53,6 +58,8 @@ export const useSystem = create<SystemState>((set) => ({
 
   grant: (level) =>
     set((state) => (level > state.permission ? { permission: level } : state)),
+
+  setPermission: (level) => set({ permission: level }),
 
   install: (programId) =>
     set((state) =>

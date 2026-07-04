@@ -33,7 +33,7 @@ export type FsNode = FsContainer | FsFile;
  *  the drive sitting at the root; `root` is the synthetic "My Computer" top. */
 export type FsContainer = FsRoot | FsDrive | FsFolder;
 
-export type FsFile = FsFileTxt | FsFileExe;
+export type FsFile = FsFileTxt | FsFileExe | FsFileDll;
 
 interface FsNodeBase {
   /** Unique, stable id — referenced from the predefined ID maps. */
@@ -77,4 +77,10 @@ export interface FsFileExe extends FsNodeBase {
   fileKind: "exe";
   /** Registry key (see `content/programs`) that maps to launch behavior. */
   program: string;
+}
+
+/** A library file. Not openable — double-clicking raises a "no program" error. */
+export interface FsFileDll extends FsNodeBase {
+  nodeClass: "file";
+  fileKind: "dll";
 }

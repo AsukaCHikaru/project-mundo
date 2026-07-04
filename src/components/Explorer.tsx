@@ -23,7 +23,14 @@ function glyphFor(node: FsNode): string {
     case "folder":
       return "📁";
     case "file":
-      return node.fileKind === "exe" ? "⚙️" : "📄";
+      switch (node.fileKind) {
+        case "exe":
+          return "⚙️";
+        case "dll":
+          return "🧩";
+        case "txt":
+          return "📄";
+      }
   }
 }
 
@@ -97,10 +104,12 @@ export function Explorer({ payload }: ExplorerProps) {
             title: `${title} - Notepad`,
             payload: { docId: node.docId },
           });
-        } else {
+        } else if (node.fileKind === "exe") {
           const program = PROGRAMS[node.program];
           if (program) program.launch(open);
           else error(`Cannot run ${node.name}.`);
+        } else {
+          error("Cannot find an appropriate program to open this file.");
         }
         break;
     }

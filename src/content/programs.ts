@@ -38,9 +38,20 @@ const FLOPPY_DRIVER_SETUP: ProgramEntry = {
     }),
 };
 
+/** The permission dll generator — runs in place, no installation. */
+const PERMISSION_DLL_GENERATOR: ProgramEntry = {
+  id: "permission-dll-generator",
+  launch: (open) =>
+    open({
+      appType: "dll-generator",
+      title: "Permission DLL Generator",
+    }),
+};
+
 /** All known programs, keyed by program id. Add new programs here. */
 export const PROGRAMS: Record<string, ProgramEntry> = {
   [FLOPPY_DRIVER_SETUP.id]: FLOPPY_DRIVER_SETUP,
+  [PERMISSION_DLL_GENERATOR.id]: PERMISSION_DLL_GENERATOR,
 };
 
 /** Install configs reachable by install flag id — used by the installer. */

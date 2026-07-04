@@ -9,7 +9,8 @@ export type AppType =
   | "email"
   | "installer"
   | "downloader"
-  | "permissions";
+  | "permissions"
+  | "dll-generator";
 
 export type WindowStatus = "normal" | "minimized" | "maximized";
 
@@ -72,6 +73,8 @@ interface DesktopState {
 
   open: (options: OpenOptions) => string;
   close: (id: string) => void;
+  /** Close every window — used when the machine crashes/reboots. */
+  closeAll: () => void;
   focus: (id: string) => void;
   move: (id: string, x: number, y: number) => void;
   resize: (id: string, w: number, h: number) => void;
@@ -85,13 +88,19 @@ const APP_DEFAULT_SIZE: Partial<Record<AppType, Pick<Rect, "w" | "h">>> = {
   email: { w: 680, h: 460 },
   downloader: { w: 380, h: 200 },
   permissions: { w: 300, h: 200 },
+  "dll-generator": { w: 440, h: 320 },
 };
 
 /** Cascades each new window slightly so they don't stack exactly. */
 const CASCADE_STEP = 24;
 
 /** App types that allow only one window — `open` focuses the existing one. */
-const SINGLETON_APP_TYPES = new Set<AppType>(["dialup", "email", "permissions"]);
+const SINGLETON_APP_TYPES = new Set<AppType>([
+  "dialup",
+  "email",
+  "permissions",
+  "dll-generator",
+]);
 
 let idCounter = 0;
 const nextId = () => `win-${++idCounter}`;
@@ -155,6 +164,8 @@ export const useDesktop = create<DesktopState>((set, get) => ({
           state.focusedId === id ? (order.at(-1) ?? null) : state.focusedId,
       };
     }),
+
+  closeAll: () => set({ windows: {}, order: [], focusedId: null }),
 
   focus: (id) =>
     set((state) => {
