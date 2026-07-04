@@ -44,6 +44,9 @@ A web puzzle game: a minimal Windows 95/98 desktop built in React 19 + Tailwind 
 - No spread props. Pass every prop explicitly (e.g. `<Foo a={x.a} b={x.b} />`, never `<Foo {...x} />`). Explicit props read more clearly and make the data flow obvious.
 - No real-world trademarks in user-facing text or assets. Evoke the win95/98 *look* (bevels, teal desktop, title bars) but use generic, original branding — e.g. "Mundo 95", never "Windows 95", the logo, etc. Avoiding trademark/legal risk.
 
+# Content Authoring
+- **Do not author in-world prose.** For any entity that carries game writing — emails (`mail`), documents (`documents.csv`), window/dialog body copy, tray tooltips, etc. — write only a minimal placeholder plus the most basic structural text needed for the feature to work. The user writes all real content by hand. This keeps the game's voice free of LLM writing bias. If a task asks to "add" such an entity, wire up the plumbing and leave the copy as a stub for the user to fill in.
+
 # Zustand
 - When a component reads more than one slice from a store, use a single selector wrapped in `useShallow` (`zustand/react/shallow`) that returns an object of the slices, rather than multiple separate `useStore((s) => s.x)` calls. The object selector returns a new reference every run, so `useShallow` is required to keep the default `Object.is` check from re-rendering on every store change.
 - A single-slice read does not need `useShallow` — `const x = useStore((s) => s.x)` is fine.
