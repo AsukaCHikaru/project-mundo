@@ -30,6 +30,11 @@ export function useMachine(): MachineContextValue {
   return ctx;
 }
 
+interface MachineProps {
+  /** Fired when the final shutdown screen is dismissed (any click or key). */
+  onExit: () => void;
+}
+
 /**
  * The PC itself, one level above the desktop. Owns the machine phase:
  * `booting` (timed splash) → `desktop`; a crash jumps to `bsod`, and Enter
@@ -40,7 +45,7 @@ export function useMachine(): MachineContextValue {
  * and boot re-derives the permission level from `permission.dll` on disk C
  * (USER when there is none or it's user-level).
  */
-export function Machine() {
+export function Machine({ onExit }: MachineProps) {
   const [phase, setPhase] = useState<MachinePhase>("desktop");
 
   const context = useMemo<MachineContextValue>(
@@ -94,7 +99,7 @@ export function Machine() {
       // children read the machine context.
       return (
         <MachineContext.Provider value={context}>
-          <ShutdownScreen />
+          <ShutdownScreen onExit={onExit} />
         </MachineContext.Provider>
       );
   }
@@ -126,15 +131,26 @@ function BootScreen() {
 /**
  * The whole shutdown sequence — the game's goal, no way back from here.
  * First the desktop gradually fades to black (the overlay also swallows
- * clicks, so nothing is interactive mid-fade), then the final screen.
+ * clicks, so nothing is interactive mid-fade), then the final screen, which
+ * any click or key press dismisses back to the game (`onExit`).
  */
-function ShutdownScreen() {
+function ShutdownScreen({ onExit }: { onExit: () => void }) {
   const [fading, setFading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => setFading(false), SHUTDOWN_FADE_MS);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (fading) return;
+    window.addEventListener("pointerdown", onExit);
+    window.addEventListener("keydown", onExit);
+    return () => {
+      window.removeEventListener("pointerdown", onExit);
+      window.removeEventListener("keydown", onExit);
+    };
+  }, [fading, onExit]);
 
   if (fading) {
     return (
