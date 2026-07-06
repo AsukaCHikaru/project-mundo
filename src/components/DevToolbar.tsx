@@ -1,5 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { NETWORK } from "../content/network";
+import { hasPermission, Permission } from "../lib/permission";
 import { useSystem } from "../store/system";
 import { BevelButton } from "./BevelButton";
 
@@ -10,15 +11,18 @@ import { BevelButton } from "./BevelButton";
  * shortcuts here as the puzzle layer grows.
  */
 export function DevToolbar() {
-  const { network, connect, disconnect } = useSystem(
+  const { network, connect, disconnect, permission, setPermission } = useSystem(
     useShallow((s) => ({
       network: s.network,
       connect: s.connect,
       disconnect: s.disconnect,
+      permission: s.permission,
+      setPermission: s.setPermission,
     })),
   );
 
   const connected = network.state === "connected";
+  const admin = hasPermission(permission, Permission.ADMIN);
 
   return (
     <div className="flex items-center gap-2 p-2 font-win text-xs text-white">
@@ -29,6 +33,13 @@ export function DevToolbar() {
         className="px-2 py-0.5 text-black"
       >
         🌐 Dial-Up: {connected ? "on" : "off"}
+      </BevelButton>
+      <BevelButton
+        held={admin}
+        onPress={() => setPermission(admin ? Permission.USER : Permission.ADMIN)}
+        className="px-2 py-0.5 text-black"
+      >
+        🔑 Admin: {admin ? "on" : "off"}
       </BevelButton>
     </div>
   );
