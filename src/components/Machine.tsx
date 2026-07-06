@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Permission } from "../lib/permission";
 import { useDesktop } from "../store/desktop";
 import { useDialogs } from "../store/dialogs";
@@ -15,16 +9,21 @@ import { Desktop } from "./Desktop";
 /** How long the boot screen shows before the desktop appears. */
 const BOOT_MS = 2000;
 
-type MachinePhase = "booting" | "bsod" | "desktop";
+/** How long the desktop fades to black before the final shutdown screen. */
+const SHUTDOWN_FADE_MS = 2000;
+
+type MachinePhase = "booting" | "bsod" | "desktop" | "shutdown";
 
 interface MachineContextValue {
   /** Crash the PC: wipe the live desktop and drop to the blue screen. */
   crash: () => void;
+  /** Shut the PC down cleanly — the terminal "safe to turn off" screen. */
+  shutDown: () => void;
 }
 
 const MachineContext = createContext<MachineContextValue | null>(null);
 
-/** The machine controls (crash), available anywhere under the desktop. */
+/** The machine controls (crash, shut down), available under the desktop. */
 export function useMachine(): MachineContextValue {
   const ctx = useContext(MachineContext);
   if (!ctx) throw new Error("useMachine must be used inside <Machine>");
@@ -34,14 +33,15 @@ export function useMachine(): MachineContextValue {
 /**
  * The PC itself, one level above the desktop. Owns the machine phase:
  * `booting` (timed splash) → `desktop`; a crash jumps to `bsod`, and Enter
- * there powers back into `booting`. Zustand stores live at module level, so
+ * there powers back into `booting`; an admin Shut Down ends on the terminal
+ * `shutdown` screen. Zustand stores live at module level, so
  * the "disk" (filesystem, documents, generated dll) survives a reboot — the
  * crash only clears the volatile session (open windows, dialogs, dial-up),
  * and boot re-derives the permission level from `permission.dll` on disk C
  * (USER when there is none or it's user-level).
  */
 export function Machine() {
-  const [phase, setPhase] = useState<MachinePhase>("booting");
+  const [phase, setPhase] = useState<MachinePhase>("desktop");
 
   const context = useMemo<MachineContextValue>(
     () => ({
@@ -51,6 +51,7 @@ export function Machine() {
         useSystem.getState().disconnect();
         setPhase("bsod");
       },
+      shutDown: () => setPhase("shutdown"),
     }),
     [],
   );
@@ -88,6 +89,14 @@ export function Machine() {
           <Desktop />
         </MachineContext.Provider>
       );
+    case "shutdown":
+      // Still under the provider: the fade stage renders the desktop, whose
+      // children read the machine context.
+      return (
+        <MachineContext.Provider value={context}>
+          <ShutdownScreen />
+        </MachineContext.Provider>
+      );
   }
 }
 
@@ -109,6 +118,44 @@ function BootScreen() {
         {/* Placeholder boot splash — real branding/copy is authored by hand. */}
         <div className="text-3xl font-bold">Mundo 95</div>
         <div className="text-sm animate-pulse">Starting…</div>
+      </div>
+    </Screen>
+  );
+}
+
+/**
+ * The whole shutdown sequence — the game's goal, no way back from here.
+ * First the desktop gradually fades to black (the overlay also swallows
+ * clicks, so nothing is interactive mid-fade), then the final screen.
+ */
+function ShutdownScreen() {
+  const [fading, setFading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setFading(false), SHUTDOWN_FADE_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (fading) {
+    return (
+      <>
+        <Desktop />
+        <div
+          className="fixed inset-0 bg-black"
+          style={{
+            animation: `fade-to-black ${SHUTDOWN_FADE_MS}ms ease-in forwards`,
+          }}
+        />
+      </>
+    );
+  }
+
+  return (
+    <Screen>
+      <div className="flex h-full items-center justify-center bg-black">
+        <div className="font-serif text-2xl" style={{ color: "#FFA500" }}>
+          It's now safe to turn off your computer.
+        </div>
       </div>
     </Screen>
   );

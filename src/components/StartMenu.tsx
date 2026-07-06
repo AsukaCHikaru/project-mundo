@@ -5,6 +5,7 @@ import { useDesktop } from "../store/desktop";
 import { useDialogs } from "../store/dialogs";
 import { useDocuments } from "../store/documents";
 import { useSystem } from "../store/system";
+import { useMachine } from "./Machine";
 
 type Category = "programs" | "documents";
 
@@ -30,6 +31,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
   const docs = useDocuments((s) => s.docs);
   const level = useSystem((s) => s.permission);
   const error = useDialogs((s) => s.error);
+  const machine = useMachine();
   const [openCategory, setOpenCategory] = useState<Category | null>(null);
 
   const openDocument = (docId: string) => {
@@ -44,7 +46,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
       error("Access denied. You don't have permission to shut down this computer.");
       return;
     }
-    // TODO: actual shutdown flow once the puzzle layer is in place.
+    machine.shutDown();
   };
 
   const openProgram = (appType: "email", title: string) => {
