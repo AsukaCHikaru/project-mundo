@@ -1,0 +1,14 @@
+id,location,folder,from,to,subject,date,read,downloadId,downloadLabel,body
+hello-world,server,inbox,postmaster@mundo.net,you@mundo.net,Hello World,Mon 6/15/1998 9:41 AM,false,,,"Welcome to Mundo Mail.
+
+This is your first message. If you can read it, your connection is working.
+
+- The Mundo Mail Team"
+getting-started,server,inbox,newsletter@mundo.net,you@mundo.net,Getting started with Mundo Mail,Mon 6/15/1998 9:42 AM,false,,,"A few tips to get you going:
+
+  * Click a message to read it.
+  * Use Send/Receive to check for new mail.
+  * Compose to write a new message.
+
+Happy mailing!"
+floppy-driver-download,server,inbox,downloads@mundo.net,you@mundo.net,Your Floppy Driver download is ready,Tue 6/16/1998 2:13 PM,false,floppy-setup-download,Download Floppy Driver Setup.exe,The driver you requested is ready. Click the link below to download it:
