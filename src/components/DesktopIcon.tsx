@@ -1,22 +1,21 @@
 import { useState } from "react";
-import { useDesktop, type AppType } from "../store/desktop";
 
 interface DesktopIconProps {
-  appType: AppType;
   label: string;
   glyph: string;
+  /** Fired on double-click — opens whatever the icon points at. */
+  onOpen: () => void;
 }
 
 /** A double-clickable desktop shortcut that opens a window. */
-export function DesktopIcon({ appType, label, glyph }: DesktopIconProps) {
-  const open = useDesktop((s) => s.open);
+export function DesktopIcon({ label, glyph, onOpen }: DesktopIconProps) {
   const [selected, setSelected] = useState(false);
 
   return (
     <button
       type="button"
       onClick={() => setSelected(true)}
-      onDoubleClick={() => open({ appType, title: label })}
+      onDoubleClick={onOpen}
       onBlur={() => setSelected(false)}
       className="flex w-20 flex-col items-center gap-1 p-1 text-center text-xs text-white"
     >
