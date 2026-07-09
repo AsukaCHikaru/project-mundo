@@ -36,14 +36,20 @@ export function StartMenu({ onClose }: StartMenuProps) {
 
   const openDocument = (docId: string) => {
     const title = docs[docId]?.title ?? "Untitled";
-    open({ appType: "notepad", title: `${title} - Notepad`, payload: { docId } });
+    open({
+      appType: "notepad",
+      title: `${title} - Notepad`,
+      payload: { docId },
+    });
     onClose();
   };
 
   const shutDown = () => {
     onClose();
     if (!hasPermission(level, Permission.ADMIN)) {
-      error("Access denied. You don't have permission to shut down this computer.");
+      error(
+        "Access denied. You don't have permission to shut down this computer.",
+      );
       return;
     }
     machine.shutDown();
@@ -60,7 +66,6 @@ export function StartMenu({ onClose }: StartMenuProps) {
       label: "Email",
       onSelect: () => openProgram("email", "Email"),
     },
-    { glyph: "🧮", label: "Calculator" },
   ];
   const documents: MenuItem[] = START_MENU_DOCUMENTS.map((item) => ({
     glyph: item.glyph,
@@ -71,9 +76,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
   return (
     <div className="bevel-out absolute bottom-full left-0 mb-0.5 flex bg-win-face">
       <div className="flex w-7 items-end justify-center bg-win-title py-2">
-        <span className="-rotate-90 text-sm font-bold whitespace-nowrap text-win-title-text">
-          Mundo <span className="font-normal">95</span>
-        </span>
+        <span className="-rotate-90 text-sm font-bold whitespace-nowrap text-win-title-text" />
       </div>
 
       <div className="w-48 py-0.5">

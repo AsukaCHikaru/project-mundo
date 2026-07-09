@@ -9,10 +9,8 @@ import { WindowLayer } from "./WindowLayer";
 
 const SHORTCUTS: { appType: AppType; label: string; glyph: string }[] = [
   { appType: "explorer", label: "My Computer", glyph: "🖥️" },
-  { appType: "notepad", label: "Notepad", glyph: "📝" },
   { appType: "dialup", label: "Dial-Up", glyph: "☎️" },
   { appType: "email", label: "Email", glyph: "✉️" },
-  { appType: "recycle-bin", label: "Recycle Bin", glyph: "🗑️" },
 ];
 
 /** The full desktop: background + icons, the window layer, and the taskbar. */
