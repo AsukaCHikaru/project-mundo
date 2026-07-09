@@ -156,12 +156,6 @@ const DRIVE_C: FsDrive = {
           // (see content/downloads), so the file "lands" here without an append.
           { state: FS_STATE.HIDDEN },
         ),
-        exe(
-          FILE_ID.PERMISSION_GENERATOR,
-          "Permission DLL Generator.exe",
-          "C:\\My Downloads\\Permission DLL Generator.exe",
-          "permission-dll-generator",
-        ),
       ],
     },
     {
@@ -201,7 +195,15 @@ const DRIVE_FLOPPY: FsDrive = {
     errorMessage:
       "F:\\ is not accessible. The required driver is not installed.",
   },
-  children: [],
+  children: [
+    // Reachable only once the floppy driver install unlocks the drive.
+    exe(
+      FILE_ID.PERMISSION_GENERATOR,
+      "Permission DLL Generator.exe",
+      "F:\\Permission DLL Generator.exe",
+      "permission-dll-generator",
+    ),
+  ],
 };
 
 export const FS_ROOT: FsRoot = {
