@@ -25,12 +25,20 @@ export interface NetworkAccount {
  * `account` at seed time, so the in-world clue and the dial-up check can never
  * disagree. (Random number is a placeholder for now.)
  */
-export const NETWORK: { account: NetworkAccount } = {
+export const NETWORK: { account: NetworkAccount; fastAccount: NetworkAccount } = {
   account: {
     phoneNumber: randomDialUpNumber(),
     username: "admin",
     password: "password",
     speed: 1,
+  },
+  // 2 MB/s. Not wired to the dial-up checks or any document yet — reachable
+  // only via the dev toolbar for now. (Credentials are placeholders.)
+  fastAccount: {
+    phoneNumber: randomDialUpNumber(),
+    username: "admin2",
+    password: "password2",
+    speed: 2048,
   },
 };
 
