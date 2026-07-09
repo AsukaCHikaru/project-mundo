@@ -1,6 +1,12 @@
-import { type Mail, type MailFolder } from "../lib/mail";
+import {
+  type Mail,
+  type MailBodyPart,
+  type MailDownload,
+  type MailFolder,
+} from "../lib/mail";
 import csvText from "./mail.csv" with { type: "text" };
 import { parseCsv } from "./csv";
+import { DOWNLOAD_ID } from "./downloads";
 
 /**
  * Email content — game data, not UI. Mirrors the documents pattern: the mails
@@ -11,9 +17,49 @@ import { parseCsv } from "./csv";
  * The `location` column decides where a mail starts: `mailbox` rows are in
  * the player's mailbox at game start, `server` rows are waiting on the server
  * and delivered to the Inbox only after a successful (connected) Send/Receive.
- * `downloadId`/`downloadLabel` (optional) attach a download link, resolved
- * against the download registry (see `content/downloads`).
+ * Bodies may carry `{{link:<name>}}` placeholders to inject one of the
+ * predefined download links ({@link MAIL_LINKS} below).
  */
+
+/**
+ * The predefined download links a mail body can inject with a
+ * `{{link:<name>}}` placeholder, keyed by that name. Links are definite
+ * (never authored per-mail), so the CSV stays plain text while the ids stay
+ * checked against the download registry here.
+ */
+export const MAIL_LINKS: Record<string, MailDownload> = {
+  "floppy-driver": {
+    id: DOWNLOAD_ID.FLOPPY_SETUP,
+    label: "Download Floppy Driver Setup.exe",
+  },
+};
+
+const LINK_PLACEHOLDER = /\{\{link:([\w-]+)\}\}/g;
+
+/**
+ * Split a body into text and link parts for rendering, resolving placeholder
+ * names against {@link MAIL_LINKS} — the same pattern as the network note's
+ * credential filling (see `content/network`). Placeholders naming an unknown
+ * link are left in the text verbatim — a visible authoring error rather than
+ * a silent drop.
+ */
+export function splitMailBody(body: string): MailBodyPart[] {
+  const parts: MailBodyPart[] = [];
+  let cursor = 0;
+  for (const match of body.matchAll(LINK_PLACEHOLDER)) {
+    const download = MAIL_LINKS[match[1]!];
+    if (!download) continue;
+    if (match.index > cursor) {
+      parts.push({ kind: "text", text: body.slice(cursor, match.index) });
+    }
+    parts.push({ kind: "link", download });
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < body.length) {
+    parts.push({ kind: "text", text: body.slice(cursor) });
+  }
+  return parts;
+}
 
 interface ParsedMail {
   mail: Mail;
@@ -36,15 +82,11 @@ function parseMails(csv: string): ParsedMail[] {
     subject: columnOf("subject"),
     date: columnOf("date"),
     read: columnOf("read"),
-    downloadId: columnOf("downloadId"),
-    downloadLabel: columnOf("downloadLabel"),
     body: columnOf("body"),
   };
 
   return rows.slice(1).map((row) => {
     const cell = (col: number) => (row[col] ?? "").trim();
-    const downloadId = cell(cols.downloadId);
-    const downloadLabel = cell(cols.downloadLabel);
     return {
       mail: {
         id: cell(cols.id),
@@ -55,9 +97,6 @@ function parseMails(csv: string): ParsedMail[] {
         date: cell(cols.date),
         read: cell(cols.read).toLowerCase() === "true",
         body: row[cols.body] ?? "",
-        download: downloadId
-          ? { id: downloadId, label: downloadLabel || undefined }
-          : undefined,
       },
       onServer: cell(cols.location) === "server",
     };

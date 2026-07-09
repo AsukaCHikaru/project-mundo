@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { splitMailBody } from "../content/mail";
 import { type Mail, type MailFolder } from "../lib/mail";
 import { useSystem } from "../store/system";
 import { useDialogs } from "../store/dialogs";
@@ -133,14 +134,19 @@ export function Email() {
                   <p className="text-xs">To: {selectedMail.to}</p>
                   <p className="text-xs">{selectedMail.date}</p>
                 </header>
-                <p className="whitespace-pre-wrap">{selectedMail.body}</p>
-                {selectedMail.download && (
-                  <p className="mt-2">
-                    <DownloadLink downloadId={selectedMail.download.id}>
-                      {selectedMail.download.label}
-                    </DownloadLink>
-                  </p>
-                )}
+                {/* Body text with any {{link:...}} placeholders rendered as
+                    inline download links. */}
+                <p className="whitespace-pre-wrap">
+                  {splitMailBody(selectedMail.body).map((part, i) =>
+                    part.kind === "link" ? (
+                      <DownloadLink key={i} downloadId={part.download.id}>
+                        {part.download.label}
+                      </DownloadLink>
+                    ) : (
+                      <span key={i}>{part.text}</span>
+                    ),
+                  )}
+                </p>
               </article>
             ) : (
               <p className="text-win-shadow">Select a message to read it.</p>
