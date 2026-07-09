@@ -24,16 +24,25 @@ export function DevToolbar() {
   const connected = network.state === "connected";
   const admin = hasPermission(permission, Permission.ADMIN);
 
+  /** One dial-up toggle per account, `held` when connected at its speed. */
+  const dialUpButton = (label: string, speed: number) => {
+    const active = connected && network.speed === speed;
+    return (
+      <BevelButton
+        held={active}
+        onPress={active ? disconnect : () => connect(speed)}
+        className="px-2 py-0.5 text-black"
+      >
+        🌐 {label}: {active ? "on" : "off"}
+      </BevelButton>
+    );
+  };
+
   return (
     <div className="flex items-center gap-2 p-2 font-win text-xs text-white">
       <span className="opacity-70">dev</span>
-      <BevelButton
-        held={connected}
-        onPress={connected ? disconnect : () => connect(NETWORK.account.speed)}
-        className="px-2 py-0.5 text-black"
-      >
-        🌐 Dial-Up: {connected ? "on" : "off"}
-      </BevelButton>
+      {dialUpButton("Dial-Up", NETWORK.account.speed)}
+      {dialUpButton("Fast Dial-Up", NETWORK.fastAccount.speed)}
       <BevelButton
         held={admin}
         onPress={() => setPermission(admin ? Permission.USER : Permission.ADMIN)}
