@@ -1,21 +1,26 @@
 id,title,path,editPermission,body
-readme,Read Me,C:\My Documents\Read Me.txt,system,"Welcome to Mundo 95.
+shut-down,SHUT DOWN THE PC,C:\My Documents\SHUT DOWN THE PC.txt,system,"Security Policy Update
+From: d100204@mundocorp.com
+To: d100000@mundocorp.com
 
-Something is keeping this machine from shutting down. Poke around the
-desktop, open what you can, and find a way to power it off.
+This note is being sent to all employees to notify that as of {date} changes to office serucity policy have been made. All devices should be SHUT DOWN when away from keyboard.
 
-Good luck."
-notes,My Notes,C:\My Documents\My Notes.txt,user,"Scratchpad. Type anything you like here."
-network,network,C:\My Documents\network.txt,system,"Dial-Up Networking - account details
-
-Dial-up number:  {{phone}}
-User name:       {{user}}
-Password:        {{password}}
-
-Required to connect to the internet. Do not share."
+Any violation identified is subjected to adverse action in accordance with Mundo Security Policy Text 4.9 (b)."
+network,network,C:\My Documents\network.txt,system,"d285251
+a441p0l15
+555-{random_number}"
 floppy-readme,Readme,C:\Program Files\Floppy Driver\Readme.txt,user,"Floppy Disk Driver 1.0
 
 This driver lets Mundo 95 read and write 3.5"" floppy disks.
 
 If a disk is not recognised, check that it is inserted the right way up
 and that the write-protect tab is closed, then try again."
+pergen-readme,Readme,C:\Program Files\PerGen\Readme.txt,user,"PerGen Manual
+
+version: 0.8.13
+
+PerGen (permission generator) is an assistance tool to generate credential which grants permission for respective roles on their devices. This program is restricted to director and above only.
+
+Usage: Select role, last name and first name for any individual in the company and click ""generate"". A credential file with selected permission will be export to target folder.
+
+Note: Permission is granted at PC boot when the credential is detected. To change permission, export new permission credential and restart PC."

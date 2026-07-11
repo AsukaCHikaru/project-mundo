@@ -1,16 +1,24 @@
 id,location,folder,from,to,subject,date,read,body
-hello-world,server,inbox,postmaster@mundo.net,you@mundo.net,Hello World,Mon 6/15/1998 9:41 AM,false,"Welcome to Mundo Mail.
+network,server,inbox,d267168@mundocorp.com,d285251@mundocorp.com,Re: network,Mon 6/1/1998 9:42 AM,false,"I know right man, it's absurd. They use different network though, I've tried it.
+Use this numner: 555-{random_number}, the gap is insane it's not even funny.
+> hey this is driving me crazy it's impossible to work with this damn network
+> ceo taking all the money ffs how can it be this slow and i'm supposed to download program for work with tihs"
+crush-info,server,inbox,d.doyle@mundocorp.com,d100000@mundocorp.com,Re: Re: PerGen Failure Report,Mon 6/15/1998 3:20 PM,false,"This is ABSURD. Selecting empty items pops a retry button but my PC was CRUSHED after two or three retries. Why is there empty items in the first place? Fix this RIGHT NOW
 
-This is your first message. If you can read it, your connection is working.
+---
+Donald Doyle
+Chief Commitment Officer
 
-- The Mundo Mail Team"
-getting-started,server,inbox,newsletter@mundo.net,you@mundo.net,Getting started with Mundo Mail,Mon 6/15/1998 9:42 AM,false,"A few tips to get you going:
-
-  * Click a message to read it.
-  * Use Send/Receive to check for new mail.
-  * Compose to write a new message.
-
-Happy mailing!"
-floppy-driver-download,server,inbox,downloads@mundo.net,you@mundo.net,Your Floppy Driver download is ready,Tue 6/16/1998 2:13 PM,false,"The driver you requested is ready. Click the link below to download it:
+> Director Aldrich,
+>
+> We apology for the inconvience. Please avoid selecting empty item in the lists.
+>
+> Terry Corwin, Assistant Tech Lead, Engineering
+>> Engineer team,
+>>
+>> This is the third time I'm reporting PerGen (Permission Generator) failture behavior. Under specific occasion (select empty in any of the list then click generate) error occurs. Please fix ASAP.
+>>
+>> S. Aldrich, Assistant Supervisor, Financial Department"
+floppy-driver-download,server,inbox,d100207@mundocorp.com,d285251@mundocorp.com,Re: Floppy disk not working,Tue 6/16/1998 2:13 PM,false,"Below is the floppy disk driver requested. Please check.
 
 {{link:floppy-driver}}"
