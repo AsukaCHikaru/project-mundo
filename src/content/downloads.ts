@@ -33,7 +33,7 @@ export interface DownloadEntry {
 const FLOPPY_SETUP_DOWNLOAD: DownloadEntry = {
   id: DOWNLOAD_ID.FLOPPY_SETUP,
   name: "Floppy Driver Setup.exe",
-  sizeKb: 30,
+  sizeKb: 11000,
   reveals: [FILE_ID.FLOPPY_SETUP],
 };
 
