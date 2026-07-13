@@ -3,6 +3,7 @@ import tailwind from "bun-plugin-tailwind";
 const result = await Bun.build({
   entrypoints: ["./src/index.html"],
   outdir: "./dist",
+  publicPath: "/mundo/",
   sourcemap: "linked",
   target: "browser",
   minify: true,
