@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { NETWORK, validateLogin, validatePhoneNumber } from "../content/network";
+import { accountForPhoneNumber, validateLogin } from "../content/network";
 import { useSystem } from "../store/system";
 import { useDialogs } from "../store/dialogs";
 import { BevelButton } from "./BevelButton";
@@ -72,9 +72,13 @@ export function DialUp() {
     if (!current) return;
 
     const timer = setTimeout(() => {
+      // Which account answers this number decides the credentials verified
+      // next and the speed granted on logon. The form is gone while dialing,
+      // so the number (and thus the account) can't change between steps.
+      const account = accountForPhoneNumber(phoneNumber);
       switch (current.step) {
         case "number":
-          if (validatePhoneNumber(phoneNumber)) {
+          if (account) {
             setState({ type: "dialing", step: DIAL_STEP.LOGIN });
           } else {
             error("No answer. Check the dial-up number and try again.");
@@ -82,7 +86,7 @@ export function DialUp() {
           }
           break;
         case "login":
-          if (validateLogin(username, password)) {
+          if (account && validateLogin(account, username, password)) {
             setState({ type: "dialing", step: DIAL_STEP.LOGON });
           } else {
             error("The user name or password is incorrect.");
@@ -90,7 +94,8 @@ export function DialUp() {
           }
           break;
         case "logon":
-          connect(NETWORK.account.speed);
+          if (!account) break;
+          connect(account.speed);
           setState({ type: "connected" });
           break;
       }

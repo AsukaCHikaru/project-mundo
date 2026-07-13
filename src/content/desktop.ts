@@ -10,4 +10,5 @@ export const DESKTOP_ITEMS: DesktopItem[] = [
   { kind: "app", appType: "explorer", label: "My Computer", glyph: "🖥️" },
   { kind: "app", appType: "dialup", label: "Dial-Up", glyph: "☎️" },
   { kind: "app", appType: "email", label: "Email", glyph: "✉️" },
+  { kind: "document", docId: "shut-down", glyph: "📄" },
 ];

@@ -6,9 +6,9 @@ To: d100000@mundocorp.com
 This note is being sent to all employees to notify that as of {date} changes to office serucity policy have been made. All devices should be SHUT DOWN when away from keyboard.
 
 Any violation identified is subjected to adverse action in accordance with Mundo Security Policy Text 4.9 (b)."
-network,network,C:\My Documents\network.txt,system,"d285251
-a441p0l15
-555-{random_number}"
+network,network,C:\My Documents\network.txt,system,"{{user}}
+{{password}}
+{{phone}}"
 floppy-readme,Readme,C:\Program Files\Floppy Driver\Readme.txt,user,"Floppy Disk Driver 1.0
 
 This driver lets Mundo 95 read and write 3.5"" floppy disks.

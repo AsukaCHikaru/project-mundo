@@ -25,34 +25,54 @@ export interface NetworkAccount {
  * `account` at seed time, so the in-world clue and the dial-up check can never
  * disagree. (Random number is a placeholder for now.)
  */
-export const NETWORK: { account: NetworkAccount; fastAccount: NetworkAccount } = {
-  account: {
-    phoneNumber: randomDialUpNumber(),
-    username: "admin",
-    password: "password",
-    speed: 1,
-  },
-  // 2 MB/s. Not wired to the dial-up checks or any document yet — reachable
-  // only via the dev toolbar for now. (Credentials are placeholders.)
-  fastAccount: {
-    phoneNumber: randomDialUpNumber(),
-    username: "admin2",
-    password: "password2",
-    speed: 2048,
-  },
-};
+const SLOW_NUMBER = randomDialUpNumber();
 
-/** Whether the entered dial-up number reaches the ISP (checked while dialing). */
-export function validatePhoneNumber(phoneNumber: string): boolean {
-  return phoneNumber.trim() === NETWORK.account.phoneNumber;
+/** A second random number, guaranteed to differ from the slow account's. */
+function distinctFastNumber(): string {
+  let number = randomDialUpNumber();
+  while (number === SLOW_NUMBER) number = randomDialUpNumber();
+  return number;
 }
 
-/** Whether the entered login is accepted (checked while verifying). */
-export function validateLogin(username: string, password: string): boolean {
-  return (
-    username.trim() === NETWORK.account.username &&
-    password === NETWORK.account.password
-  );
+export const NETWORK: { account: NetworkAccount; fastAccount: NetworkAccount } =
+  {
+    account: {
+      phoneNumber: SLOW_NUMBER,
+      username: "d285251",
+      password: "a441po115",
+      speed: 1,
+    },
+    // 2 MB/s. Its number reaches mail via the {{fastPhone}} placeholder (see
+    // content/mail). (Credentials are placeholders.)
+    fastAccount: {
+      phoneNumber: distinctFastNumber(),
+      username: "admin2",
+      password: "password2",
+      speed: 2048,
+    },
+  };
+
+/** Every dialable account. */
+const ACCOUNTS: NetworkAccount[] = [NETWORK.account, NETWORK.fastAccount];
+
+/**
+ * The account reached by dialing `phoneNumber`, or undefined when nothing
+ * answers (checked while dialing). Which account picks up decides the
+ * credentials that are verified next and the speed granted on logon.
+ */
+export function accountForPhoneNumber(
+  phoneNumber: string,
+): NetworkAccount | undefined {
+  return ACCOUNTS.find((account) => account.phoneNumber === phoneNumber.trim());
+}
+
+/** Whether `account` accepts the entered login (checked while verifying). */
+export function validateLogin(
+  account: NetworkAccount,
+  username: string,
+  password: string,
+): boolean {
+  return username.trim() === account.username && password === account.password;
 }
 
 /** The network note whose body carries the live credentials (see below). */
@@ -66,7 +86,9 @@ export const NETWORK_DOC_ID = "network";
  */
 export function withNetworkCredentials(docs: GameDocument[]): GameDocument[] {
   return docs.map((doc) =>
-    doc.id === NETWORK_DOC_ID ? { ...doc, body: fillCredentials(doc.body) } : doc,
+    doc.id === NETWORK_DOC_ID
+      ? { ...doc, body: fillCredentials(doc.body) }
+      : doc,
   );
 }
 

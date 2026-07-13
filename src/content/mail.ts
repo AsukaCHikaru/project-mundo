@@ -7,6 +7,7 @@ import {
 import csvText from "./mail.csv" with { type: "text" };
 import { parseCsv } from "./csv";
 import { DOWNLOAD_ID } from "./downloads";
+import { NETWORK } from "./network";
 
 /**
  * Email content — game data, not UI. Mirrors the documents pattern: the mails
@@ -18,7 +19,10 @@ import { DOWNLOAD_ID } from "./downloads";
  * the player's mailbox at game start, `server` rows are waiting on the server
  * and delivered to the Inbox only after a successful (connected) Send/Receive.
  * Bodies may carry `{{link:<name>}}` placeholders to inject one of the
- * predefined download links ({@link MAIL_LINKS} below).
+ * predefined download links ({@link MAIL_LINKS} below), and `{{fastPhone}}`
+ * for the fast dial-up account's number — filled from the live `NETWORK`
+ * config at parse time, like the network note's credentials, so the clue in
+ * the mail and the account can never disagree.
  */
 
 /**
@@ -33,6 +37,11 @@ export const MAIL_LINKS: Record<string, MailDownload> = {
     label: "Download Floppy Driver Setup.exe",
   },
 };
+
+/** Fill a body's network placeholders from the live network config. */
+function fillNetworkDetails(body: string): string {
+  return body.replaceAll("{{fastPhone}}", NETWORK.fastAccount.phoneNumber);
+}
 
 const LINK_PLACEHOLDER = /\{\{link:([\w-]+)\}\}/g;
 
@@ -96,7 +105,7 @@ function parseMails(csv: string): ParsedMail[] {
         subject: cell(cols.subject),
         date: cell(cols.date),
         read: cell(cols.read).toLowerCase() === "true",
-        body: row[cols.body] ?? "",
+        body: fillNetworkDetails(row[cols.body] ?? ""),
       },
       onServer: cell(cols.location) === "server",
     };

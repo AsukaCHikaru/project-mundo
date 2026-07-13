@@ -1,6 +1,6 @@
 id,location,folder,from,to,subject,date,read,body
 network,server,inbox,d267168@mundocorp.com,d285251@mundocorp.com,Re: network,Mon 6/1/1998 9:42 AM,false,"I know right man, it's absurd. They use different network though, I've tried it.
-Use this numner: 555-{random_number}, the gap is insane it's not even funny.
+Use this numner: {{fastPhone}}, the gap is insane it's not even funny.
 > hey this is driving me crazy it's impossible to work with this damn network
 > ceo taking all the money ffs how can it be this slow and i'm supposed to download program for work with tihs"
 crush-info,server,inbox,d.doyle@mundocorp.com,d100000@mundocorp.com,Re: Re: PerGen Failure Report,Mon 6/15/1998 3:20 PM,false,"This is ABSURD. Selecting empty items pops a retry button but my PC was CRUSHED after two or three retries. Why is there empty items in the first place? Fix this RIGHT NOW
