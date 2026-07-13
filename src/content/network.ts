@@ -1,4 +1,5 @@
 import { type GameDocument } from "../lib/documents";
+import { FILE_ID } from "./filesystem";
 
 /** A classic fake "555" phone number with a random 4-digit line. */
 function randomDialUpNumber(): string {
@@ -77,18 +78,15 @@ export function validateLogin(
   return username.trim() === account.username && password === account.password;
 }
 
-/** The network note whose body carries the live credentials (see below). */
-export const NETWORK_DOC_ID = "network";
-
 /**
- * The network note is authored in documents.csv with `{{phone}}`/`{{user}}`/
- * `{{password}}` placeholders so its static text lives with the other content.
- * This fills them from the live {@link NETWORK} config at seed time, keeping the
- * clue and the check reading from one source.
+ * The network note (FILE_ID.NETWORK_NOTE) is authored in documents.csv with
+ * `{{phone}}`/`{{user}}`/`{{password}}` placeholders so its static text lives
+ * with the other content. This fills them from the live {@link NETWORK} config
+ * at seed time, keeping the clue and the check reading from one source.
  */
 export function withNetworkCredentials(docs: GameDocument[]): GameDocument[] {
   return docs.map((doc) =>
-    doc.id === NETWORK_DOC_ID
+    doc.id === FILE_ID.NETWORK_NOTE
       ? { ...doc, body: fillCredentials(doc.body) }
       : doc,
   );

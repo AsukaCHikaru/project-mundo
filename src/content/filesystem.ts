@@ -9,6 +9,7 @@ import {
   type FsRoot,
   type FsState,
 } from "../lib/filesystem";
+import { getDocument } from "./documents";
 
 /**
  * In-world filesystem — the single source of truth for the predefined
@@ -36,7 +37,11 @@ export const FOLDER_ID = {
   FLOPPY_DRIVER: "floppy-driver-folder",
 } as const;
 
-/** File ids (txt documents and exe entries). */
+/**
+ * File ids — the single source of truth for referencing a file anywhere
+ * (desktop, Start menu, reveals, credential fill). For txt files the node id
+ * doubles as the documents.csv doc id.
+ */
 export const FILE_ID = {
   SHUT_DOWN: "shut-down",
   NETWORK_NOTE: "network",
@@ -47,21 +52,27 @@ export const FILE_ID = {
 } as const;
 
 /** Small constructors keep the tree below readable. */
+
+/**
+ * A txt node is a *placement* of a document: its name and path are resolved
+ * from documents.csv via {@link getDocument}, so the tree can never disagree
+ * with the authored content. The node id doubles as the doc id.
+ */
 const txt = (
-  id: string,
-  name: string,
-  path: string,
   docId: string,
   initialState: FsState = { state: FS_STATE.NORMAL },
-): FsFileTxt => ({
-  nodeClass: "file",
-  fileKind: "txt",
-  id,
-  name,
-  path,
-  docId,
-  initialState,
-});
+): FsFileTxt => {
+  const doc = getDocument(docId);
+  return {
+    nodeClass: "file",
+    fileKind: "txt",
+    id: docId,
+    name: doc.fileName,
+    path: doc.path,
+    docId,
+    initialState,
+  };
+};
 
 const exe = (
   id: string,
@@ -86,15 +97,7 @@ const FLOPPY_DRIVER_FOLDER: FsFolder = {
   name: "Floppy Driver",
   path: "C:\\Program Files\\Floppy Driver",
   initialState: { state: FS_STATE.HIDDEN },
-  children: [
-    txt(
-      FILE_ID.FLOPPY_README,
-      "Readme.txt",
-      "C:\\Program Files\\Floppy Driver\\Readme.txt",
-      "floppy-readme",
-      { state: FS_STATE.HIDDEN },
-    ),
-  ],
+  children: [txt(FILE_ID.FLOPPY_README, { state: FS_STATE.HIDDEN })],
 };
 
 const DRIVE_C: FsDrive = {
@@ -110,21 +113,7 @@ const DRIVE_C: FsDrive = {
       name: "My Documents",
       path: "C:\\My Documents",
       initialState: { state: FS_STATE.NORMAL },
-      children: [
-        txt(
-          FILE_ID.SHUT_DOWN,
-          "SHUT DOWN THE PC.txt",
-          "C:\\Program Files\\Floppy Driver\\SHUT DOWN THE PC.txt",
-          "shut-down",
-          { state: FS_STATE.NORMAL },
-        ),
-        txt(
-          FILE_ID.NETWORK_NOTE,
-          "network.txt",
-          "C:\\My Documents\\network.txt",
-          "network",
-        ),
-      ],
+      children: [txt(FILE_ID.SHUT_DOWN), txt(FILE_ID.NETWORK_NOTE)],
     },
     {
       nodeClass: "folder",

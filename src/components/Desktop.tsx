@@ -17,19 +17,22 @@ export function Desktop() {
   );
   const docs = useDocuments((s) => s.docs);
 
-  /** The icon's label and what double-clicking it opens. */
+  /** The icon's label/glyph and what double-clicking it opens. */
   const iconFor = (item: DesktopItem) => {
     if (item.kind === "app") {
       return {
         key: `app-${item.appType}`,
         label: item.label,
+        glyph: item.glyph,
         onOpen: () => open({ appType: item.appType, title: item.label }),
       };
     }
-    const title = docs[item.docId]?.title ?? "Untitled";
+    const doc = docs[item.docId];
+    const title = doc?.title ?? "Untitled";
     return {
       key: `doc-${item.docId}`,
       label: title,
+      glyph: doc?.glyph ?? "📄",
       onOpen: () =>
         open({
           appType: "notepad",
@@ -52,7 +55,7 @@ export function Desktop() {
                 <DesktopIcon
                   key={icon.key}
                   label={icon.label}
-                  glyph={item.glyph}
+                  glyph={icon.glyph}
                   onOpen={icon.onOpen}
                 />
               );

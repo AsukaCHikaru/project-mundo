@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { START_MENU_DOCUMENTS } from "../content/startMenu";
+import { START_MENU_DOCUMENT_IDS } from "../content/startMenu";
 import { hasPermission, Permission } from "../lib/permission";
 import { useDesktop } from "../store/desktop";
 import { useDialogs } from "../store/dialogs";
@@ -67,10 +67,10 @@ export function StartMenu({ onClose }: StartMenuProps) {
       onSelect: () => openProgram("email", "Email"),
     },
   ];
-  const documents: MenuItem[] = START_MENU_DOCUMENTS.map((item) => ({
-    glyph: item.glyph,
-    label: docs[item.docId]?.title ?? "Untitled",
-    onSelect: () => openDocument(item.docId),
+  const documents: MenuItem[] = START_MENU_DOCUMENT_IDS.map((docId) => ({
+    glyph: docs[docId]?.glyph ?? "📄",
+    label: docs[docId]?.title ?? "Untitled",
+    onSelect: () => openDocument(docId),
   }));
 
   return (
