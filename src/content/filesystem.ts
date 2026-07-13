@@ -47,6 +47,7 @@ export const FILE_ID = {
   NETWORK_NOTE: "network",
   FLOPPY_SETUP: "floppy-setup",
   FLOPPY_README: "floppy-readme",
+  PERGEN_README: "pergen-readme",
   PERMISSION_GENERATOR: "permission-generator",
   PERMISSION_DLL: "permission-dll",
 } as const;
@@ -186,6 +187,7 @@ const DRIVE_FLOPPY: FsDrive = {
       "F:\\Permission DLL Generator.exe",
       "permission-dll-generator",
     ),
+    txt(FILE_ID.PERGEN_README),
   ],
 };
 

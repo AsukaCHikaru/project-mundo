@@ -15,7 +15,7 @@ This driver lets Mundo 95 read and write 3.5"" floppy disks.
 
 If a disk is not recognised, check that it is inserted the right way up
 and that the write-protect tab is closed, then try again."
-pergen-readme,Readme,C:\Program Files\PerGen\Readme.txt,user,"PerGen Manual
+pergen-readme,Readme,F:\Readme.txt,user,"PerGen Manual
 
 version: 0.8.13
 

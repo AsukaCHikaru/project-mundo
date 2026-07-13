@@ -44,7 +44,7 @@ const PERMISSION_DLL_GENERATOR: ProgramEntry = {
   launch: (open) =>
     open({
       appType: "dll-generator",
-      title: "Permission DLL Generator",
+      title: "PerGen",
     }),
 };
 
