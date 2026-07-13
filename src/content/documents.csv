@@ -3,7 +3,7 @@ shut-down,SHUT DOWN THE PC,C:\My Documents\SHUT DOWN THE PC.txt,system,"Security
 From: d100204@mundocorp.com
 To: d100000@mundocorp.com
 
-This note is being sent to all employees to notify that as of {date} changes to office serucity policy have been made. All devices should be SHUT DOWN when away from keyboard.
+This note is being sent to all employees to notify that as of 4/1/1998 changes to office serucity policy have been made. All devices should be SHUT DOWN when away from keyboard.
 
 Any violation identified is subjected to adverse action in accordance with Mundo Security Policy Text 4.9 (b)."
 network,network,C:\My Documents\network.txt,system,"{{user}}
