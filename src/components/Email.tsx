@@ -71,8 +71,17 @@ export function Email() {
     <div className="flex h-full flex-col text-sm text-black">
       {/* Action bar */}
       <div className="bevel-out flex gap-1 bg-win-face p-1">
-        <ActionButton glyph="📝" label="Compose" />
-        <ActionButton glyph="↩️" label="Reply" disabled={!selectedMail} />
+        <ActionButton
+          glyph="📝"
+          label="Compose"
+          onPress={() => error("Action unaccessible")}
+        />
+        <ActionButton
+          glyph="↩️"
+          label="Reply"
+          disabled={!selectedMail}
+          onPress={() => error("Action unaccessible")}
+        />
         <ActionButton
           glyph="📡"
           label="Send/Receive"
