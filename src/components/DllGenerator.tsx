@@ -32,8 +32,9 @@ interface DllGeneratorProps {
  * and Generate/Close. Generate writes `permission.dll` to disk C (a hidden
  * filesystem node revealed here; its data goes to the permission-dll store) —
  * admin-level only for the one combination in `content/permissionDll`.
- * Selecting empty rows instead raises retryable errors; retrying the
- * all-empty one three times in a row crashes the machine.
+ * Selecting some empty rows raises a plain error; selecting all three empty
+ * raises a retryable one, and retrying it three times in a row crashes the
+ * machine.
  */
 export function DllGenerator({ windowId }: DllGeneratorProps) {
   const close = useDesktop((s) => s.close);
@@ -47,26 +48,6 @@ export function DllGenerator({ windowId }: DllGeneratorProps) {
   const [title, setTitle] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
-
-  /** Empty-row error: Retry closes it and re-raises a plain error shortly. */
-  const popEmptyRowError = () => {
-    openDialog({
-      kind: "error",
-      // Placeholder copy — real error text is authored by hand.
-      message: "Failed to generate permission.dll.",
-      buttons: [
-        {
-          label: "Retry",
-          onPress: () =>
-            setTimeout(
-              () => error("An unexpected error occurred."),
-              RETRY_DELAY_MS,
-            ),
-        },
-        { label: "Close" },
-      ],
-    });
-  };
 
   /**
    * All-rows-empty error: same Retry behavior, but the follow-up keeps the
@@ -102,7 +83,8 @@ export function DllGenerator({ windowId }: DllGeneratorProps) {
       return;
     }
     if (picks.some((pick) => pick === EMPTY)) {
-      popEmptyRowError();
+      // Placeholder copy — real error text is authored by hand.
+      error("Failed to generate permission.dll.");
       return;
     }
 
