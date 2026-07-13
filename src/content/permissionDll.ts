@@ -15,20 +15,54 @@ export interface DllSelection {
 
 /** The only selection that generates an admin-level dll. */
 const ADMIN_SELECTION: DllSelection = {
-  title: "Manager",
-  lastName: "Smith",
-  firstName: "John",
+  title: "Chief Commitment Officer",
+  lastName: "Donald",
+  firstName: "Doyle",
 };
 
 /** Decoy list entries — stubs, author freely. */
-const DUMMY_TITLES = ["Clerk", "Director", "Intern"];
-const DUMMY_LAST_NAMES = ["Doe", "Rivera", "Chan"];
-const DUMMY_FIRST_NAMES = ["Jane", "Marco", "Yuki"];
+const DUMMY_TITLES = [
+  "Director",
+  "Manager",
+  "Tech Lead",
+  "Supervisor",
+  "Analyst",
+];
+const DUMMY_LAST_NAMES = [
+  "Alan",
+  "Robert",
+  "James",
+  "John",
+  "Terry",
+  "Wayne",
+  "Larry",
+  "Bruce",
+  "William",
+  "Michael",
+];
+const DUMMY_FIRST_NAMES = [
+  "Marsh",
+  "McAllister",
+  "Aldrich",
+  "O'Shea",
+  "Corwin",
+  "Vance",
+  "Grisby",
+  "Stennis",
+  "Marchetti",
+  "Crowley",
+];
 
 /** What the UI lists: the admin entry merged in with the decoys, A→Z. */
 export const DLL_TITLES = [ADMIN_SELECTION.title, ...DUMMY_TITLES].sort();
-export const DLL_LAST_NAMES = [ADMIN_SELECTION.lastName, ...DUMMY_LAST_NAMES].sort();
-export const DLL_FIRST_NAMES = [ADMIN_SELECTION.firstName, ...DUMMY_FIRST_NAMES].sort();
+export const DLL_LAST_NAMES = [
+  ADMIN_SELECTION.lastName,
+  ...DUMMY_LAST_NAMES,
+].sort();
+export const DLL_FIRST_NAMES = [
+  ADMIN_SELECTION.firstName,
+  ...DUMMY_FIRST_NAMES,
+].sort();
 
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 
