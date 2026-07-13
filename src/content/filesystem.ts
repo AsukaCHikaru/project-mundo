@@ -38,9 +38,8 @@ export const FOLDER_ID = {
 
 /** File ids (txt documents and exe entries). */
 export const FILE_ID = {
-  READ_ME: "read-me",
-  MY_NOTES: "my-notes",
-  NETWORK_NOTE: "network-note",
+  SHUT_DOWN: "shut-down",
+  NETWORK_NOTE: "network",
   FLOPPY_SETUP: "floppy-setup",
   FLOPPY_README: "floppy-readme",
   PERMISSION_GENERATOR: "permission-generator",
@@ -113,16 +112,11 @@ const DRIVE_C: FsDrive = {
       initialState: { state: FS_STATE.NORMAL },
       children: [
         txt(
-          FILE_ID.READ_ME,
-          "Read Me.txt",
-          "C:\\My Documents\\Read Me.txt",
-          "readme",
-        ),
-        txt(
-          FILE_ID.MY_NOTES,
-          "My Notes.txt",
-          "C:\\My Documents\\My Notes.txt",
-          "notes",
+          FILE_ID.SHUT_DOWN,
+          "SHUT DOWN THE PC.txt",
+          "C:\\Program Files\\Floppy Driver\\SHUT DOWN THE PC.txt",
+          "shut-down",
+          { state: FS_STATE.NORMAL },
         ),
         txt(
           FILE_ID.NETWORK_NOTE,

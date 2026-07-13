@@ -7,7 +7,6 @@ import { NETWORK_DOC_ID } from "./network";
  * own title (resolved from the documents store), so it never drifts.
  */
 export const START_MENU_DOCUMENTS: StartMenuDocument[] = [
-  { glyph: "📄", docId: "readme" },
-  { glyph: "📄", docId: "notes" },
+  { glyph: "📄", docId: "shut-down" },
   { glyph: "📄", docId: NETWORK_DOC_ID },
 ];
