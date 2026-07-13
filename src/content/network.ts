@@ -26,6 +26,8 @@ export interface NetworkAccount {
  * disagree. (Random number is a placeholder for now.)
  */
 const SLOW_NUMBER = randomDialUpNumber();
+const NETWORK_USERNAME = "d285251";
+const NETWORK_PASSWORD = "a441po115";
 
 /** A second random number, guaranteed to differ from the slow account's. */
 function distinctFastNumber(): string {
@@ -38,16 +40,16 @@ export const NETWORK: { account: NetworkAccount; fastAccount: NetworkAccount } =
   {
     account: {
       phoneNumber: SLOW_NUMBER,
-      username: "d285251",
-      password: "a441po115",
+      username: NETWORK_USERNAME,
+      password: NETWORK_PASSWORD,
       speed: 1,
     },
     // 2 MB/s. Its number reaches mail via the {{fastPhone}} placeholder (see
     // content/mail). (Credentials are placeholders.)
     fastAccount: {
       phoneNumber: distinctFastNumber(),
-      username: "admin2",
-      password: "password2",
+      username: NETWORK_USERNAME,
+      password: NETWORK_PASSWORD,
       speed: 2048,
     },
   };
